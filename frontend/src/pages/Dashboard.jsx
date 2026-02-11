@@ -1,0 +1,1 @@
+// cp App.jsx to here and adjust the component name

@@ -1,0 +1,1 @@
+// redirect to /login if not authenticated, else render children

@@ -1,6 +1,6 @@
 # Python BE
 
-## How to run (on WSL2s)
+## How to run (on WSL2)
 1. Ensure you have Python installed, currently on 3.10 for this.
 2. Create a python virtual env: `python -m venv chess-app-env`
 3. Activate it: `source chess-app-env/bin/activate` (or Scripts instead of bin if on Windows Git Bash)

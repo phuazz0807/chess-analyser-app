@@ -1,0 +1,1 @@
+// Stores user/token, provides login()/logout() functions

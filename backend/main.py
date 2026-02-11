@@ -134,6 +134,11 @@ def map_game(game: dict) -> Game:
             white=accuracies_raw.get("white"),
             black=accuracies_raw.get("black"),
         )
+    else:
+        accuracies = GameAccuracies(
+            white=0,
+            black=0,
+        )
 
     return Game(
         url=game.get("url"),
