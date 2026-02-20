@@ -1,77 +1,42 @@
-import { useState } from 'react';
-import QueryForm from './components/QueryForm';
-import GamesTable from './components/GamesTable';
+/**
+ * App — root component with routing setup.
+ * Provides authentication context and route definitions.
+ */
+
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
+import ProtectedRoute from './components/ProtectedRoute';
+import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
+import Dashboard from './pages/Dashboard';
 import './App.css';
 
-/**
- * App — root component.
- * Coordinates the query form, API fetch, error/loading states, and results table.
- */
 export default function App() {
-  const [games, setGames] = useState([]);
-  const [username, setUsername] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [searched, setSearched] = useState(false);
-
-  async function handleSubmit({ username, startDate, endDate }) {
-    setError('');
-    setGames([]);
-    setUsername(username);
-    setLoading(true);
-    setSearched(true);
-
-    try {
-      const params = new URLSearchParams({
-        username,
-        start_date: startDate,
-        end_date: endDate,
-      });
-
-      const res = await fetch(`/games?${params}`);
-      const data = await res.json();
-
-      if (!res.ok) {
-        // Backend returns { detail: "..." } on errors
-        setError(data.detail || `Request failed (HTTP ${res.status})`);
-        return;
-      }
-
-      setGames(data.games || []);
-    } catch (err) {
-      setError('Could not reach the server. Is the backend running?');
-    } finally {
-      setLoading(false);
-    }
-  }
-
   return (
-    <div className="app">
-      <header className="app-header">
-        <h1>Chess Analyser</h1>
-        <p className="subtitle">Look up games from Chess.com by date range</p>
-      </header>
+    <BrowserRouter>
+      <AuthProvider>
+        <Routes>
+          {/* Public routes */}
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
 
-      <QueryForm onSubmit={handleSubmit} loading={loading} />
+          {/* Protected routes */}
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
 
-      {/* API / server error */}
-      {error && <div className="error-message api-error">{error}</div>}
+          {/* Redirect root to login */}
+          <Route path="/" element={<Navigate to="/login" replace />} />
 
-      {/* Loading spinner */}
-      {loading && (
-        <div className="loading">
-          <div className="spinner" />
-          <span>Fetching games...</span>
-        </div>
-      )}
-
-      {/* No games found (after a search that succeeded but returned nothing) */}
-      {searched && !loading && !error && games.length === 0 && (
-        <div className="no-games">No games found for the given criteria.</div>
-      )}
-
-      {/* Results table */}
-      <GamesTable games={games} username={username} />
-    </div>
+          {/* Catch-all redirect */}
+          <Route path="*" element={<Navigate to="/login" replace />} />
+        </Routes>
+      </AuthProvider>
+    </BrowserRouter>
   );
 }
