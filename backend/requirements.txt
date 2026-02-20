@@ -2,3 +2,8 @@ fastapi
 uvicorn
 httpx
 pydantic
+pydantic-settings
+passlib[bcrypt]
+python-jose[cryptography]
+sqlalchemy
+psycopg2-binary

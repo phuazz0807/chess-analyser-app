@@ -10,9 +10,29 @@ from typing import Optional
 
 import httpx
 from fastapi import FastAPI, HTTPException, Query
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
+from app.routers.auth import router as auth_router
+
 app = FastAPI(title="Chess Analyser", version="1.0.0")
+
+# CORS middleware configuration
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",  # Vite dev server
+        "http://localhost:3000",  # Alternative dev port
+        "http://127.0.0.1:5173",
+        "http://127.0.0.1:3000",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Register auth router
+app.include_router(auth_router)
 
 CHESS_COM_BASE = "https://api.chess.com/pub/player"
 HTTP_HEADERS = {"User-Agent": "ChessAnalyserApp/1.0"}
