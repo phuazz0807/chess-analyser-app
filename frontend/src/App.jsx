@@ -10,6 +10,8 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import Dashboard from './pages/Dashboard';
 import './App.css';
+import Layout from './components/Layout';
+import UserProfile from './pages/UserProfile';
 
 export default function App() {
   return (
@@ -20,15 +22,17 @@ export default function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
 
-          {/* Protected routes */}
+          {/* Protected routes — all share the Layout (sidebar) */}
           <Route
-            path="/dashboard"
             element={
               <ProtectedRoute>
-                <Dashboard />
+                <Layout />
               </ProtectedRoute>
             }
-          />
+          >
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/profile" element={<UserProfile />} />
+          </Route>
 
           {/* Redirect root to login */}
           <Route path="/" element={<Navigate to="/login" replace />} />
