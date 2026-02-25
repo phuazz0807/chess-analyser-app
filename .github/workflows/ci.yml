@@ -71,10 +71,6 @@ jobs:
     name: Security Scanning (SAST)
     runs-on: ubuntu-latest
     
-    permissions:
-      contents: read
-      security-events: write
-    
     steps:
     - uses: actions/checkout@v4
     
@@ -87,13 +83,4 @@ jobs:
           p/javascript
           p/react
           p/owasp-top-ten
-        # Generate SARIF output for GitHub Security tab
-        generateSarif: true
-      env:
-        SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
-    
-    - name: Upload SARIF file
-      uses: github/codeql-action/upload-sarif@v3
-      if: always()
-      with:
-        sarif_file: semgrep.sarif
+        auditOn: push

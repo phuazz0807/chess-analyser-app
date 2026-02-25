@@ -16,7 +16,7 @@ __pycache__/
 *.pyc
 *.pyo
 
-# Test files and mock data (optional - uncomment if you don't want to scan tests)
+# Test files and mock data
 # **/*test*.py
 # **/*.test.js
 # **/*.test.jsx
