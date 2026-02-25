@@ -102,6 +102,7 @@ export function AuthProvider({ children }) {
  * Hook to access auth context.
  * @returns {{user: object|null, token: string|null, loading: boolean, isAuthenticated: boolean, login: function, logout: function, register: function}}
  */
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAuth() {
   const context = useContext(AuthContext);
   if (!context) {
