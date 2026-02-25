@@ -15,7 +15,7 @@ export default function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [passwordErrors, setPasswordErrors] = useState([]);
+  const [, setPasswordErrors] = useState([]);
   const [touched, setTouched] = useState(false);
 
   const { register } = useAuth();
@@ -126,7 +126,7 @@ export default function RegisterPage() {
                   text="One digit"
                 />
                 <PasswordRequirement
-                  met={/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~`]/.test(password)}
+                  met={/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?~`]/.test(password)}
                   text="One special character"
                 />
               </div>
