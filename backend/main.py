@@ -14,6 +14,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from app.routers.auth import router as auth_router
+from app.routers.user import router as user_router
 
 app = FastAPI(title="Chess Analyser", version="1.0.0")
 
@@ -31,8 +32,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Register auth router
+# Register routers
 app.include_router(auth_router)
+app.include_router(user_router)
 
 CHESS_COM_BASE = "https://api.chess.com/pub/player"
 HTTP_HEADERS = {"User-Agent": "ChessAnalyserApp/1.0"}

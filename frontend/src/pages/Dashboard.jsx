@@ -4,10 +4,8 @@
  */
 
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import QueryForm from '../components/QueryForm';
 import GamesTable from '../components/GamesTable';
-import { useAuth } from '../context/AuthContext';
 import '../App.css';
 
 export default function Dashboard() {
@@ -16,9 +14,6 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [searched, setSearched] = useState(false);
-
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
 
   async function handleSubmit({ username, startDate, endDate }) {
     setError('');
@@ -45,29 +40,16 @@ export default function Dashboard() {
 
       setGames(data.games || []);
     } catch (err) {
-      setError('Could not reach the server. Is the backend running? Got error: ' + err.message);
+      setError('Could not reach the server. Is the backend running?',err);
     } finally {
       setLoading(false);
     }
   }
 
-  function handleLogout() {
-    logout();
-    navigate('/login');
-  }
-
   return (
     <div className="app">
       <header className="app-header">
-        <div className="header-top">
-          <h1>Chess Analyser</h1>
-          <div className="user-info">
-            <span className="user-email">{user?.email}</span>
-            <button onClick={handleLogout} className="logout-button">
-              Logout
-            </button>
-          </div>
-        </div>
+        <h1>Chess Analyser</h1>
         <p className="subtitle">Look up games from Chess.com by date range</p>
       </header>
 
