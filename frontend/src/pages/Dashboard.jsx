@@ -40,7 +40,7 @@ export default function Dashboard() {
 
       setGames(data.games || []);
     } catch (err) {
-      setError('Could not reach the server. Is the backend running? Got error: ' + err.message);
+      setError('Could not reach the server. Is the backend running?',err);
     } finally {
       setLoading(false);
     }
