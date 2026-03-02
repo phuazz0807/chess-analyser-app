@@ -4,7 +4,7 @@ PGN analyser — the core orchestration module.
 Responsibilities:
     1. Parse a PGN string into a sequence of (fen_before, played_move) pairs.
     2. For each position, ask the engine for the best move + eval, and the
-       played‑move eval.
+       played-move eval.
     3. Compute centipawn loss (CPL) and classify each move.
     4. Return a list of ``MoveResult`` objects.
 """
@@ -34,14 +34,14 @@ def classify_move(
     played_eval_cp: int,
 ) -> str:
     """
-    Classify a single move based on centipawn loss and special‑case rules.
+    Classify a single move based on centipawn loss and special-case rules.
 
     Classification thresholds (CPL → label)
     ----------------------------------------
-    0–10   → best
-    11–50  → good
-    51–100 → inaccuracy
-    101–300 → mistake
+    0-10   → best
+    11-50  → good
+    51-100 → inaccuracy
+    101-300 → mistake
     300+   → blunder
 
     Special rules
@@ -49,8 +49,8 @@ def classify_move(
     • If the best move leads to a forced mate but the played move does NOT,
       the player missed a winning mate → **blunder**.
     • If the played eval is *better* than the best eval from the same
-      perspective (can happen due to search‑depth horizon effects or multi‑PV
-      noise), treat it as **best** — the player found an equal‑or‑better line.
+      perspective (can happen due to search-depth horizon effects or multi-PV
+      noise), treat it as **best** — the player found an equal-or-better line.
     """
     # --- Special: missed mate ------------------------------------------------
     # If engine's best move gives a forced mate and the played move does not,
@@ -82,7 +82,7 @@ def classify_move(
 def parse_pgn(pgn_string: str) -> List[Tuple[str, str]]:
     """
     Parse a PGN string and return a list of ``(fen_before, played_move_uci)``
-    tuples — one per half‑move along the **mainline** only.
+    tuples — one per half-move along the **mainline** only.
 
     Raises
     ------
@@ -129,7 +129,7 @@ def analyze_game(
     depth: int,
 ) -> List[MoveResult]:
     """
-    End‑to‑end analysis of a game.
+    End-to-end analysis of a game.
 
     Parameters
     ----------
@@ -138,12 +138,12 @@ def analyze_game(
     pgn_string : str
         Full PGN text.
     depth : int
-        Search depth (10–25).
+        Search depth (10-25).
 
     Returns
     -------
     list[MoveResult]
-        One entry per half‑move in mainline order.
+        One entry per half-move in mainline order.
     """
     # 1. Parse PGN → list of (fen, played_move) ---------------------------------
     positions = parse_pgn(pgn_string)
@@ -157,14 +157,14 @@ def analyze_game(
         # Determine side to move from FEN (field index 1: "w" or "b").
         white_to_move = fen_before.split()[1] == "w"
 
-        # --- A: best‑move evaluation -------------------------------------------
+        # --- A: best-move evaluation -------------------------------------------
         best_move, best_eval_dict = engine.evaluate_best(fen_before)
         best_eval_cp = normalize_eval(best_eval_dict, white_to_move)
 
-        # --- B: played‑move evaluation -----------------------------------------
+        # --- B: played-move evaluation -----------------------------------------
         # After making the played move the side to move flips, so the returned
         # eval is from the *opponent's* perspective.  We need to normalize from
-        # the **new** side‑to‑move's viewpoint — which is the opposite of
+        # the **new** side-to-move's viewpoint — which is the opposite of
         # white_to_move.
         played_eval_dict = engine.evaluate_played(fen_before, played_move)
         played_eval_cp = normalize_eval(played_eval_dict, not white_to_move)
@@ -173,7 +173,7 @@ def analyze_game(
         # Centipawn loss = how many centipawns worse the played move is compared
         # to the best move, from the mover's perspective.
         #
-        # Because both evals are already in White‑POV centipawns, we can compare
+        # Because both evals are already in White-POV centipawns, we can compare
         # directly.  For a White move, a *lower* eval is worse; for a Black move,
         # a *higher* (less negative) eval is worse.
         #

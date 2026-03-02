@@ -32,6 +32,8 @@ export default function App() {
           >
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/profile" element={<UserProfile />} />
+            {/* Placeholder — will be implemented as a full analysis page later */}
+            <Route path="/analysis/:gameId" element={<div style={{ padding: '2rem' }}>Analysis page coming soon.</div>} />
           </Route>
 
           {/* Redirect root to login */}

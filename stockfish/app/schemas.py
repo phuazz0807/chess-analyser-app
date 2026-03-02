@@ -20,7 +20,7 @@ class AnalysisRequest(BaseModel):
         game_id:        UUID of the game (passed through, not validated as UUID
                         so the caller can use any string identifier).
         pgn:            Full PGN string of the game.
-        analysis_depth: Stockfish search depth (10–25 inclusive).
+        analysis_depth: Stockfish search depth (10-25 inclusive).
     """
 
     game_id: str = Field(..., min_length=1, description="Unique game identifier")
@@ -29,7 +29,7 @@ class AnalysisRequest(BaseModel):
         default=18,
         ge=10,
         le=25,
-        description="Stockfish search depth (10–25)",
+        description="Stockfish search depth (10-25)",
     )
 
     @field_validator("pgn")
@@ -53,10 +53,10 @@ class MoveResult(BaseModel):
         negative → Black is better
 
     classification uses CPL thresholds:
-        0–10   → best
-        11–50  → good
-        51–100 → inaccuracy
-        101–300 → mistake
+        0-10   → best
+        11-50  → good
+        51-100 → inaccuracy
+        101-300 → mistake
         300+   → blunder
     """
 

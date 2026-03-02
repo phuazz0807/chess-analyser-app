@@ -2,7 +2,7 @@
 Stockfish Analysis Microservice — FastAPI entry point.
 
 Endpoints:
-    POST /analyze   Accepts a PGN + depth, returns per‑move analysis.
+    POST /analyze   Accepts a PGN + depth, returns per-move analysis.
     GET  /health    Liveness / readiness probe.
 
 The Stockfish engine is initialised once at startup and reused for every

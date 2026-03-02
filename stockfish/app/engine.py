@@ -7,7 +7,7 @@ Encapsulates:
     • evaluation after a specific (played) move
     • centipawn normalization (mate → cp, perspective flip)
 
-Uses the *python‑stockfish* library — never talks raw UCI.
+Uses the *python-stockfish* library — never talks raw UCI.
 """
 
 from __future__ import annotations
@@ -30,8 +30,8 @@ DEFAULT_HASH_MB = 128
 
 # Large centipawn value used when converting mate scores so that
 # mates always compare as "better / worse" than any centipawn eval.
-_MATE_CP_BASE = 100_000
-_MATE_CP_PER_MOVE = 1_000
+_MATE_CP_BASE = 100000
+_MATE_CP_PER_MOVE = 1000
 
 
 # ---------------------------------------------------------------------------
@@ -43,7 +43,7 @@ def normalize_eval(eval_dict: Dict[str, object], white_to_move: bool) -> int:
     Convert a Stockfish evaluation dict to a single centipawn integer
     from **White's perspective**.
 
-    Stockfish evaluates from the *side‑to‑move's* perspective, so when it is
+    Stockfish evaluates from the *side-to-move's* perspective, so when it is
     Black's turn the raw value must be inverted.
 
     Mate handling
@@ -53,10 +53,10 @@ def normalize_eval(eval_dict: Dict[str, object], white_to_move: bool) -> int:
     * **N > 0** → the side to move can force mate in N moves.
     * **N < 0** → the side to move is being mated in |N| moves.
 
-    We map this to a centipawn‑equivalent so that forced mates sort clearly
+    We map this to a centipawn-equivalent so that forced mates sort clearly
     above/below any positional evaluation:
 
-        sign(N) × (100 000 − |N| × 1 000)
+        sign(N) x (100 000 - |N| x 1 000)
 
     Then flip if Black to move.
 
@@ -65,7 +65,7 @@ def normalize_eval(eval_dict: Dict[str, object], white_to_move: bool) -> int:
     eval_dict : dict
         ``{"type": "cp"|"mate", "value": int}``
     white_to_move : bool
-        Derived from the FEN active‑colour field.
+        Derived from the FEN active-colour field.
 
     Returns
     -------
@@ -79,7 +79,7 @@ def normalize_eval(eval_dict: Dict[str, object], white_to_move: bool) -> int:
         cp = raw_value
     elif eval_type == "mate":
         # sign preserves "who is winning"; magnitude shrinks as mate gets
-        # further away so that Mate‑in‑1 > Mate‑in‑5 in absolute terms.
+        # further away so that Mate-in-1 > Mate-in-5 in absolute terms.
         sign = 1 if raw_value > 0 else -1
         cp = sign * (_MATE_CP_BASE - abs(raw_value) * _MATE_CP_PER_MOVE)
     else:
@@ -104,10 +104,10 @@ def is_mate_eval(eval_dict: Dict[str, object]) -> bool:
 
 class StockfishEngine:
     """
-    Thin wrapper around the *python‑stockfish* ``Stockfish`` instance.
+    Thin wrapper around the *python-stockfish* ``Stockfish`` instance.
 
-    Designed to be **reused across requests** (do NOT create per‑move).
-    The depth is set per‑request via :meth:`set_depth`.
+    Designed to be **reused across requests** (do NOT create per-move).
+    The depth is set per-request via :meth:`set_depth`.
     """
 
     def __init__(
@@ -123,7 +123,7 @@ class StockfishEngine:
         try:
             self._sf = Stockfish(
                 path=path,
-                depth=18,  # default; overridden per‑request
+                depth=18,  # default; overridden per-request
                 parameters={
                     "Threads": threads,
                     "Hash": hash_mb,
@@ -166,7 +166,7 @@ class StockfishEngine:
         Return the evaluation **after** *played_move* is applied to *fen*.
 
         This tells us how good the position is once the player's actual move
-        has been made, so we can compare it against the best‑move eval to
+        has been made, so we can compare it against the best-move eval to
         compute centipawn loss.
         """
         self._sf.set_fen_position(fen)

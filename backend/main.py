@@ -15,6 +15,7 @@ from pydantic import BaseModel
 
 from app.routers.auth import router as auth_router
 from app.routers.user import router as user_router
+from app.routers.analysis import router as analysis_router
 
 app = FastAPI(title="Chess Analyser", version="1.0.0")
 
@@ -35,6 +36,7 @@ app.add_middleware(
 # Register routers
 app.include_router(auth_router)
 app.include_router(user_router)
+app.include_router(analysis_router)
 
 CHESS_COM_BASE = "https://api.chess.com/pub/player"
 HTTP_HEADERS = {"User-Agent": "ChessAnalyserApp/1.0"}
