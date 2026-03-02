@@ -16,4 +16,19 @@ export default defineConfig({
       },
     },
   },
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: './src/test/setup.js',
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'html'],
+      threshold: {
+        branches: 85,
+        functions: 85,
+        lines: 85,
+        statements: 85,
+      },
+    },
+  },
 })
