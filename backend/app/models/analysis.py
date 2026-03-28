@@ -1,38 +1,35 @@
-from pydantic import BaseModel, Field
-from typing import Literal, Optional
+"""
+SQLAlchemy ORM model for move-level analysis results.
+"""
+
+from sqlalchemy import BigInteger, Column, DateTime, Integer, String, func
+
+from app.core.database import Base
 
 
-class AnalysisStartRequest(BaseModel):
-    """Payload the frontend sends to kick off analysis."""
-    game_id: str = Field(..., min_length=1)
-    pgn: str = Field(..., min_length=1)
-    analysis_depth: int = Field(default=18, ge=10, le=25)
-
-
-class MoveResult(BaseModel):
-    """Single‑move analysis result (matches Stockfish AnalysisResponse.results[])."""
-    move_number: int
-    fen_before: str
-    played_move: str
-    played_eval: int
-    best_move: str
-    best_eval: int
-    centipawn_loss: int
-    classification: str
-
-
-class AnalysisCallbackPayload(BaseModel):
+class MoveAnalysis(Base):
     """
-    Payload POSTed by the Stockfish service when analysis is complete.
-    Mirrors stockfish/app/schemas.py → AnalysisResponse.
+    ORM model for persisted Stockfish analysis of individual moves.
     """
-    game_id: str
-    analysis_depth: int
-    results: list[MoveResult]
 
+    __tablename__ = "move_analysis"
 
-class AnalysisStatusResponse(BaseModel):
-    """Returned by the status endpoint so the frontend can poll."""
-    game_id: str
-    status: Literal["pending", "done", "error"]
-    error: Optional[str] = None
+    user_id = Column(BigInteger, primary_key=True, nullable=False)
+    game_id = Column(String, primary_key=True, nullable=False)
+    move_number = Column(Integer, primary_key=True)
+    fen_before = Column(String, nullable=True)
+    played_move = Column(String, nullable=True)
+    played_eval = Column(Integer, nullable=True)
+    best_move = Column(String, nullable=True)
+    best_eval = Column(Integer, nullable=True)
+    centipawn_loss = Column(Integer, nullable=True)
+    classification = Column(String, nullable=True)
+    analysis_depth = Column(Integer, nullable=True)
+    created_at = Column(DateTime(timezone=True), nullable=True, server_default=func.now())
+
+    def __repr__(self) -> str:
+        return (
+            f"<MoveAnalysis(game_id={self.game_id}, move_number={self.move_number}, "
+            f"played_move={self.played_move}, played_eval={self.played_eval}, "
+            f"best_move={self.best_move}, best_eval={self.best_eval})>"
+        )

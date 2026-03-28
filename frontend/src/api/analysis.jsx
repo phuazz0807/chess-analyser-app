@@ -18,16 +18,18 @@ const API_BASE = '/api/analysis';
  * The backend forwards the request to the Stockfish microservice in the
  * background and returns HTTP 202 immediately.
  *
+ * @param {string} userId   — current user's ID
  * @param {string} gameId   — unique game identifier
  * @param {string} pgn      — full PGN string
  * @param {number} depth    — analysis depth (10–25, default 18)
  * @returns {Promise<{message: string, game_id: string}>}
  */
-export async function startAnalysis(gameId, pgn, depth = 18) {
+export async function startAnalysis(userId, gameId, pgn, depth = 18) {
   const response = await fetch(`${API_BASE}/start`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
+      user_id: userId,
       game_id: gameId,
       pgn,
       analysis_depth: depth,
@@ -95,12 +97,13 @@ export async function analyzeAndWait(
   gameId,
   pgn,
   depth = 18,
+  userId,
   intervalMs = 3000,
   maxRetries = 100,
   signal = undefined,
 ) {
   // 1. Trigger the analysis.
-  await startAnalysis(gameId, pgn, depth);
+  await startAnalysis(userId, gameId, pgn, depth);
 
   // 2. Poll until done / error / timeout.
   for (let attempt = 0; attempt < maxRetries; attempt++) {

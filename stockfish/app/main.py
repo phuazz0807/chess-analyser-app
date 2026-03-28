@@ -103,7 +103,7 @@ async def lifespan(_app: FastAPI) -> AsyncGenerator[None, None]:
 app = FastAPI(
     title="Stockfish Analysis Service",
     version="1.0.0",
-    description="Analyses chess PGN and returns per‑move evaluations.",
+    description="Analyses chess PGN and returns per-move evaluations.",
     lifespan=lifespan,
 )
 
@@ -122,7 +122,7 @@ async def health() -> dict:
 @app.post("/analyze", response_model=AnalysisResponse)
 async def analyze(request: AnalysisRequest) -> AnalysisResponse:
     """
-    Analyse a PGN game and return structured per‑move metrics.
+    Analyse a PGN game and return structured per-move metrics.
 
     Returns HTTP 400 for invalid input (bad PGN, no moves, depth out of range).
     Returns HTTP 503 if the engine is unavailable.
@@ -157,11 +157,14 @@ async def analyze(request: AnalysisRequest) -> AnalysisResponse:
     engine = get_engine()
 
     try:
+        # print received request (for debugging)
+        print(f"Received analysis request: game_id={request.game_id} pgn={request.pgn[:100]}... depth={request.analysis_depth}")
         results = analyze_game(
             engine=engine,
             pgn_string=request.pgn,
             depth=request.analysis_depth,
         )
+        print(f"Analysis successful: game_id={request.game_id}  moves={len(results)}")
     except ValueError as exc:
         # PGN parsing / validation errors → 400
         raise HTTPException(status_code=400, detail=str(exc)) from exc

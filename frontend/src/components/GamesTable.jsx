@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { formatDate, computeResult } from '../helpers';
 import { analyzeAndWait } from '../api/analysis.jsx';
+import { useAuth } from '../context/AuthContext.jsx';
 
 /**
  * Per‑row analysis state container.
@@ -19,6 +20,7 @@ import { analyzeAndWait } from '../api/analysis.jsx';
  *   3. Swaps to "View Analysis" on completion
  */
 export default function GamesTable({ games, username }) {
+  const { user } = useAuth();
   const navigate = useNavigate();
 
   // Row‑level analysis state keyed by game url (unique per game).
@@ -55,6 +57,8 @@ export default function GamesTable({ games, username }) {
   const handleAnalyze = useCallback(
     async (game) => {
       const gameUrl = game.url;
+      console.log(`Starting analysis for game ${gameUrl}`);
+      console.log(`Game ID: ${game.idx}, PGN length: ${game.pgn ? game.pgn.length : 'N/A'}`);
 
       // Prevent duplicate clicks.
       const current = getRowState(gameUrl);
@@ -64,7 +68,7 @@ export default function GamesTable({ games, username }) {
 
       try {
         // Use game URL as the unique ID and send PGN + default depth.
-        await analyzeAndWait(gameUrl, game.pgn, 18);
+        await analyzeAndWait(gameUrl, game.pgn, 18, user.user_id);
 
         // Analysis complete — update button state.
         updateRow(gameUrl, { isAnalyzing: false, isAnalyzed: true });

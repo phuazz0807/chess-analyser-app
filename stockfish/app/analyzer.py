@@ -15,6 +15,8 @@ import io
 import logging
 from typing import List, Tuple
 
+import chess
+import chess.pgn
 
 from app.engine import StockfishEngine, normalize_eval, is_mate_eval
 from app.schemas import MoveResult

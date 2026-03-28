@@ -21,12 +21,19 @@ import logging
 from typing import Dict
 
 import httpx
-from fastapi import APIRouter, HTTPException, status
-from app.models.analysis import (
+from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import StreamingResponse
+from sqlalchemy.orm import Session
+
+from app.core.database import SessionLocal, get_db
+from app.crud.analysis import create_move_analysis_record
+from app.crud.history import create_game_history_record
+from app.schemas.analysis import (
     AnalysisCallbackPayload,
     AnalysisStartRequest,
     AnalysisStatusResponse,
 )
+from app.utils.history import parse_pgn
 
 logger = logging.getLogger(__name__)
 
@@ -39,11 +46,16 @@ STOCKFISH_SERVICE_URL = "http://localhost:8001/analyze"
 STOCKFISH_TIMEOUT = 300  # generous timeout for deep analysis
 
 # ---------------------------------------------------------------------------
-# In-memory store  (placeholder — swap for Supabase persistence later)
+# In-memory store (placeholder — swap for Supabase persistence later)
+# Composite key: (user_id, game_id) represented as "user_id:game_id" string
 # ---------------------------------------------------------------------------
 
-# Maps game_id → { "status": "pending"|"done"|"error", "result": ... }
+# Maps composite_key "user_id:game_id" --> { "status": "pending"|"done"|"error", "result": ... } dict
 _analysis_store: Dict[str, dict] = {}
+
+# Event listeners for SSE notifications
+# Maps composite_key "user_id:game_id" --> list of asyncio.Queue objects
+_event_listeners: Dict[str, list] = {}
 
 # ---------------------------------------------------------------------------
 # Router
@@ -53,28 +65,37 @@ router = APIRouter(prefix="/api/analysis", tags=["Analysis"])
 
 
 @router.post("/start", status_code=status.HTTP_202_ACCEPTED)
-async def start_analysis(request: AnalysisStartRequest):
+async def start_analysis(
+    request: AnalysisStartRequest,
+    db: Session = Depends(get_db),
+):
     """
     Kick off Stockfish analysis for a game.
 
-    1. Mark the game as "pending" in the in-memory store.
+    This request is from FE: src/api/analysis.jsx → startAnalysis().
+
+    1. Mark the game as "pending" in the in-memory store using composite key (user_id, game_id).
     2. Fire-and-forget an async task that:
        a. Forwards the request to the Stockfish service.
-       b. On success, stores the result and marks status as "done".
+       b. On success, stores the result, marks status as "done", and writes to the database.
        c. On failure, marks status as "error".
     3. Return HTTP 202 immediately so the frontend is not blocked.
 
-    The frontend should poll GET /api/analysis/status/{game_id} to know
-    when analysis is complete.
+    Frontend should subscribe to /api/analysis/subscribe/{user_id}/{game_id} to receive
+    a real-time notification when analysis completes.
     """
     game_id = request.game_id
+    user_id = request.user_id
+    composite_key = f"{user_id}:{game_id}"
 
+    print(f"Received analysis request from user_id={user_id} game_id={game_id}")
+    
     # Prevent duplicate submissions — if already pending, just return 202.
-    if game_id in _analysis_store and _analysis_store[game_id]["status"] == "pending":
+    if composite_key in _analysis_store and _analysis_store[composite_key]["status"] == "pending":
         return {"message": "Analysis already in progress", "game_id": game_id}
 
     # Mark as pending.
-    _analysis_store[game_id] = {"status": "pending", "result": None, "error": None}
+    _analysis_store[composite_key] = {"status": "pending", "result": None, "error": None}
 
     # Launch the Stockfish call in the background so we return immediately.
     asyncio.create_task(_run_analysis(request))
@@ -92,32 +113,36 @@ async def analysis_callback(payload: AnalysisCallbackPayload):
     calls Stockfish synchronously in the background task instead, but we
     keep this endpoint for flexibility.
 
-    Validates the payload and stores it.
+    Note: This endpoint is deprecated in favor of the background task handling.
+    Payload must include user_id via query parameter or in the body.
     """
-    game_id = payload.game_id
-    _analysis_store[game_id] = {
-        "status": "done",
-        "result": payload.model_dump(),
-        "error": None,
-    }
-    logger.info("Callback received for game_id=%s  moves=%d", game_id, len(payload.results))
-
-    # TODO: persist to Supabase here.
-
-    return {"message": "Analysis stored", "game_id": game_id}
+    # For now, if this is called directly, we can't store it since we need user_id.
+    # In the background task, we handle storage directly.
+    
+    logger.warning(
+        "Direct callback endpoint was called for game_id=%s. "
+        "Prefer background task handling.", payload.game_id
+    )
+    
+    return {"message": "Analysis callback received", "game_id": payload.game_id}
 
 
-@router.get("/status/{game_id}", response_model=AnalysisStatusResponse)
-async def analysis_status(game_id: str):
+@router.get("/status/{user_id}/{game_id}", response_model=AnalysisStatusResponse)
+async def analysis_status(user_id: int, game_id: str):
     """
     Poll endpoint — returns the current analysis status for a game.
 
+    Path params:
+        user_id  — user who submitted the analysis
+        game_id  — the game being analyzed
+
     Statuses:
         pending — analysis is still running
-        done    — results are available at /api/analysis/result/{game_id}
+        done    — results are available at /api/analysis/result/{user_id}/{game_id}
         error   — analysis failed; error message included
     """
-    entry = _analysis_store.get(game_id)
+    composite_key = f"{user_id}:{game_id}"
+    entry = _analysis_store.get(composite_key)
     if entry is None:
         raise HTTPException(status_code=404, detail="No analysis found for this game.")
 
@@ -128,14 +153,19 @@ async def analysis_status(game_id: str):
     )
 
 
-@router.get("/result/{game_id}")
-async def analysis_result(game_id: str):
+@router.get("/result/{user_id}/{game_id}")
+async def analysis_result(user_id: int, game_id: str):
     """
     Return the full analysis result for a completed game.
 
+    Path params:
+        user_id  — user who submitted the analysis
+        game_id  — the game being analyzed
+
     Returns HTTP 404 if no analysis exists, HTTP 202 if still pending.
     """
-    entry = _analysis_store.get(game_id)
+    composite_key = f"{user_id}:{game_id}"
+    entry = _analysis_store.get(composite_key)
     if entry is None:
         raise HTTPException(status_code=404, detail="No analysis found for this game.")
 
@@ -149,6 +179,69 @@ async def analysis_result(game_id: str):
     return entry["result"]
 
 
+@router.get("/subscribe/{user_id}/{game_id}")
+async def subscribe_to_analysis(user_id: int, game_id: str):
+    """
+    Server-Sent Events (SSE) endpoint — subscribe to real-time analysis completion.
+
+    Frontend connects to this endpoint and waits for a message event. When the
+    analysis completes successfully or fails, the backend sends a notification.
+
+    Path params:
+        user_id  — user ID
+        game_id  — game ID
+
+    Response format:
+        event: done
+        data: {"game_id": "...", "status": "done"}
+
+        or
+
+        event: error
+        data: {"game_id": "...", "status": "error", "error": "..."}
+    """
+    composite_key = f"{user_id}:{game_id}"
+
+    # Check if analysis is already complete
+    entry = _analysis_store.get(composite_key)
+    if entry and entry["status"] != "pending":
+        # Already done or error — send immediately
+        yield f"event: {entry['status']}\ndata: {entry}\n\n"
+        return
+
+    # Create a queue for this subscriber
+    queue = asyncio.Queue()
+    if composite_key not in _event_listeners:
+        _event_listeners[composite_key] = []
+    _event_listeners[composite_key].append(queue)
+
+    try:
+        # Wait for a notification
+        message = await queue.get()
+        yield f"data: {message}\n\n"
+    finally:
+        # Clean up
+        if composite_key in _event_listeners:
+            _event_listeners[composite_key].remove(queue)
+            if not _event_listeners[composite_key]:
+                del _event_listeners[composite_key]
+
+
+async def _notify_listeners(composite_key: str, status: str, data: dict) -> None:
+    """Notify all subscribers for a composite_key that analysis is complete."""
+    if composite_key not in _event_listeners:
+        return
+
+    notification = {"game_id": composite_key.split(":")[1], "status": status, **data}
+    notification_str = str(notification).replace("'", '"')  # JSON-like format
+
+    for queue in _event_listeners[composite_key]:
+        try:
+            await queue.put(notification_str)
+        except Exception as e:
+            logger.exception("Failed to notify listener: %s", e)
+
+
 # ---------------------------------------------------------------------------
 # Background task — calls Stockfish service
 # ---------------------------------------------------------------------------
@@ -158,10 +251,18 @@ async def _run_analysis(request: AnalysisStartRequest) -> None:
     Async background task that forwards the analysis request to the
     Stockfish microservice and stores the result.
 
-    On success → status="done", result=<AnalysisResponse dict>
-    On failure → status="error", error=<message>
+    On success:
+        → status="done", result=<AnalysisResponse dict>
+        → writes game_history and move_analysis records to DB
+        → notifies listeners
+    On failure:
+        → status="error", error=<message>
+        → notifies listeners
     """
     game_id = request.game_id
+    user_id = request.user_id
+    composite_key = f"{user_id}:{game_id}"
+
     try:
         async with httpx.AsyncClient(timeout=STOCKFISH_TIMEOUT) as client:
             resp = await client.post(
@@ -175,18 +276,22 @@ async def _run_analysis(request: AnalysisStartRequest) -> None:
                 "Stockfish returned %d for game_id=%s: %s",
                 resp.status_code, game_id, error_detail,
             )
-            _analysis_store[game_id] = {
+            _analysis_store[composite_key] = {
                 "status": "error",
                 "result": None,
                 "error": f"Stockfish error (HTTP {resp.status_code}): {error_detail}",
             }
+            # Notify listeners of error
+            await _notify_listeners(composite_key, "error", {
+                "error": f"Stockfish error (HTTP {resp.status_code})"
+            })
             return
 
         # Validate the response payload.
         data = resp.json()
         callback_payload = AnalysisCallbackPayload(**data)
 
-        _analysis_store[game_id] = {
+        _analysis_store[composite_key] = {
             "status": "done",
             "result": callback_payload.model_dump(),
             "error": None,
@@ -196,12 +301,43 @@ async def _run_analysis(request: AnalysisStartRequest) -> None:
             game_id, len(callback_payload.results),
         )
 
-        # TODO: persist to Supabase here.
+        print(f"Analysis complete for game_id={game_id}  moves={len(callback_payload.results)}")
+        # print move list
+        for move in callback_payload.results[:5]:  # print first 5 moves for brevity
+            print(f"  Move {move.move_number}: played {move.played_move} eval={move.played_eval} best={move.best_move} eval={move.best_eval} loss={move.centipawn_loss}")
+        print(f"... (total moves: {len(callback_payload.results)})")
+
+        # NOW write to database (atomic — only after successful analysis)
+        db = SessionLocal()
+        try:
+            # Parse PGN and create game history record with status="done"
+            parsed_pgn = parse_pgn(request.pgn, user_id)
+            create_game_history_record(db, user_id, game_id, parsed_pgn, status="done")
+            # Force parent row write before child inserts so DB FK checks pass.
+            db.flush()
+            
+            # Create move analysis records
+            create_move_analysis_record(db, callback_payload, user_id)
+            db.commit()
+            logger.info("Stored analysis in database for game_id=%s", game_id)
+            print(f"Stored analysis in database for game_id={game_id}")
+        except Exception:
+            db.rollback()
+            logger.exception("Failed to store analysis in database for game_id=%s", game_id)
+            raise
+        finally:
+            db.close()
+
+        # Notify listeners of completion
+        await _notify_listeners(composite_key, "done", {})
 
     except Exception as exc:
         logger.exception("Background analysis failed for game_id=%s", game_id)
-        _analysis_store[game_id] = {
+        error_msg = str(exc)
+        _analysis_store[composite_key] = {
             "status": "error",
             "result": None,
-            "error": str(exc),
+            "error": error_msg,
         }
+        # Notify listeners of error
+        await _notify_listeners(composite_key, "error", {"error": error_msg})

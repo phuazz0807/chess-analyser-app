@@ -30,10 +30,13 @@ Base = declarative_base()
 def get_db():
     """
     Dependency that provides a database session.
-    Ensures the session is properly closed after use.
     """
     db = SessionLocal()
     try:
         yield db
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
     finally:
         db.close()
