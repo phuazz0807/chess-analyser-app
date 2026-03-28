@@ -6,9 +6,47 @@
   display: flex;
   height: calc(100vh - 3rem);
   overflow: hidden;
-  gap: 0;
+  align-items: stretch;
 }
 
+.review-panel {
+  flex: 0 0 280px;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-secondary);
+  border-left: 1px solid var(--border-color);
+  overflow: hidden;
+  height: 100%;
+}
+.analysis-label {
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+.review-board-wrapper {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+}
+
+.eval-bar {
+  width: 34px;
+  border-radius: 4px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+
+.eval-bar-black {
+  background: #4a4744;
+  transition: height 0.3s ease;
+}
+
+.eval-bar-white {
+  background: #e8e6e3;
+  transition: height 0.3s ease;
+}
 /* ── Left: board area ── */
 .review-board-area {
   flex: 1 1 auto;
@@ -63,15 +101,6 @@
   color: var(--text-secondary);
 }
 
-/* ── Right: review panel ── */
-.review-panel {
-  flex: 0 0 280px;
-  display: flex;
-  flex-direction: column;
-  background: var(--bg-secondary);
-  border-left: 1px solid var(--border-color);
-  overflow: hidden;
-}
 
 /* Analysis section */
 .review-panel-analysis {

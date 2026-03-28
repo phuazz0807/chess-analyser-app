@@ -69,6 +69,23 @@ function getGameResult(game) {
   }
   return null;
 }
+function EvalBar({ eval: rawEval, boardSize }) {
+ const clampedEval = Math.max(-1000, Math.min(1000, rawEval ?? 0));
+const whitePercent = ((clampedEval + 1000) / 2000) * 100;
+
+  return (
+    <div className="eval-bar" style={{ height: boardSize }}>
+      <div
+        className="eval-bar-black"
+        style={{ height: `${100 - whitePercent}%` }}
+      />
+      <div
+        className="eval-bar-white"
+        style={{ height: `${whitePercent}%` }}
+      />
+    </div>
+  );
+}
 
 function ResultModal({ game, onClose }) {
   const result = getGameResult(game);
@@ -107,7 +124,8 @@ export default function ReviewPage() {
       if (!boardAreaRef.current) return;
       const area = boardAreaRef.current;
       const padding = 80;
-      const available = Math.min(area.clientWidth, area.clientHeight - padding);
+      const barWidth = 48 + 6; // bar width + gap
+      const available = Math.min(area.clientWidth - barWidth, area.clientHeight - padding);
       setBoardSize(Math.max(280, available));
     }
     updateSize();
@@ -149,17 +167,49 @@ export default function ReviewPage() {
     setShowResult(true);
   };
 
-  const bestMoveArrows = showBestMove
-    ? [{ from: 'e2', to: 'e4', color: 'rgba(0, 200, 100, 0.8)' }]
-    : [];
+  const CLASSIFICATION_EMOJI = {
+  best: '✅ Best',
+  excellent: '✅ Excellent', 
+  good: '🟢 Good',
+  inaccuracy: '⚠️ Inaccuracy',
+  mistake: '❓ Mistake',
+  blunder: '❗ Blunder',
+  miss: '❌ Miss',
+  brilliant: '✨ Brilliant',
+  great: '🎯 Great',
+  };
 
-  const analysisText = moveIndex === fens.length - 1 && getGameResult(game)
-    ? `🏁 ${getGameResult(game).label}${getGameResult(game).winner ? ` — ${getGameResult(game).winner}` : ''}`
-    : showBestMove
-    ? '✦ Best move shown — engine\'s top recommendation for this position.'
-    : moveIndex === 0
-    ? 'Navigate through the game using the buttons below.'
-    : 'Use "Show Best Move" to see the engine\'s recommendation.';
+  const [analysisData, setAnalysisData] = useState([]);
+
+  useEffect(() => {
+  if (!game.url) return;
+  const token = localStorage.getItem('chess_analyser_token');
+  fetch(`/api/analysis/${encodeURIComponent(game.url)}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+    .then(res => res.ok ? res.json() : null)
+    .then(data => { 
+  console.log('analysis data:', data);
+  if (data) setAnalysisData(data.moves); 
+})
+    .catch(() => {});
+}, [game.url]);
+
+const bestMoveArrows = useMemo(() => {
+  if (!showBestMove || moveIndex === 0) return [];
+  const moveData = analysisData.find(m => m.move_number === moveIndex);
+  if (!moveData?.best_move || moveData.best_move.length < 4) return [];
+  return [[
+  moveData.best_move.slice(0, 2),
+  moveData.best_move.slice(2, 4),
+  'rgba(0, 200, 100, 0.8)',
+]];
+}, [showBestMove, moveIndex, analysisData]);
+
+const currentMoveData = useMemo(() => {
+  if (moveIndex === 0) return null;
+  return analysisData.find(m => m.move_number === moveIndex) || null;
+}, [moveIndex, analysisData]);
 
   return (
     <div className="review-page">
@@ -172,7 +222,11 @@ export default function ReviewPage() {
           <span className="review-player-name">{game.black_username}</span>
           <span className="review-player-elo">{game.black_rating}</span>
         </div>
-
+        <div className="review-board-wrapper">
+        <EvalBar
+          eval={moveIndex === 0 ? 0 : currentMoveData?.played_eval}
+          boardSize={boardSize}
+        />
         <div className="review-board">
           <Chessboard
             position={currentFen}
@@ -184,7 +238,7 @@ export default function ReviewPage() {
             boardWidth={boardSize}
           />
         </div>
-
+        </div>
         <div className="review-player">
           <span className="review-player-avatar review-player-avatar--white">♙</span>
           <span className="review-player-name">{game.white_username}</span>
@@ -200,8 +254,29 @@ export default function ReviewPage() {
             <span className="review-panel-analysis-title">Analysis</span>
           </div>
           <div className="review-panel-analysis-body">
-            <p className="review-panel-analysis-text">{analysisText}</p>
-          </div>
+  {moveIndex === fens.length - 1 && getGameResult(game) ? (
+    <p className="review-panel-analysis-text">
+      {`🏁 ${getGameResult(game).label}${getGameResult(game).winner ? ` — ${getGameResult(game).winner}` : ''}`}
+    </p>
+  ) : currentMoveData ? (
+    <>
+      <p className="review-panel-analysis-text">
+        <span className="analysis-label">Classification: </span>
+        {CLASSIFICATION_EMOJI[currentMoveData.classification] || currentMoveData.classification || '—'}
+      </p>
+      {/* <p className="review-panel-analysis-text">
+        <span className="analysis-label">Centipawn Loss: </span>
+        {currentMoveData.centipawn_loss ?? '—'}
+      </p> */}
+    </>
+  ) : (
+    <p className="review-panel-analysis-text">
+      {moveIndex === 0
+        ? 'Navigate through the game using the buttons below.'
+        : 'No analysis available for this move.'}
+    </p>
+  )}
+</div>
         </div>
 
         <div className="review-panel-moves">
