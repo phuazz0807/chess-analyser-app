@@ -3,20 +3,46 @@
  * Covers: rendering, player info, move navigation, move list click,
  *         show best move toggle, result modal, analysis text
  */
-
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+/* eslint-disable no-undef */
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import ReviewPage from '../../pages/ReviewPage';
-
-// Mock Chessboard to avoid canvas/resize issues in jsdom
+// Mock Chessboard — expose customArrows as data attribute for assertions
 vi.mock('react-chessboard', () => ({
-  Chessboard: ({ position }) => <div data-testid="chessboard" data-position={position} />,
+  Chessboard: ({ position, customArrows }) => (
+    <div
+      data-testid="chessboard"
+      data-position={position}
+      data-arrows={JSON.stringify(customArrows)}
+    />
+  ),
 }));
 
-vi.mock('./ReviewPage.css', () => ({}));
+vi.mock('../../pages/ReviewPage.css', () => ({}));
+
+const mockAnalysisData = {
+  game_id: 'https://www.chess.com/game/live/123456789',
+  moves: [
+    { move_number: 1, fen_before: '', played_move: 'e2e4', played_eval: 114, centipawn_loss: 0, classification: 'best', best_move: 'e2e4', best_eval: 114, analysis_depth: 18 },
+    { move_number: 2, fen_before: '', played_move: 'e7e5', played_eval: -26, centipawn_loss: 59, classification: 'inaccuracy', best_move: 'c7c5', best_eval: 33, analysis_depth: 18 },
+    { move_number: 3, fen_before: '', played_move: 'g1f3', played_eval: -31, centipawn_loss: 5, classification: 'good', best_move: 'g1f3', best_eval: -31, analysis_depth: 18 },
+    { move_number: 4, fen_before: '', played_move: 'b8c6', played_eval: 33, centipawn_loss: 0, classification: 'best', best_move: 'b8c6', best_eval: 33, analysis_depth: 18 },
+    { move_number: 5, fen_before: '', played_move: 'f1b5', played_eval: -31, centipawn_loss: 0, classification: 'best', best_move: 'f1b5', best_eval: -31, analysis_depth: 18 },
+    { move_number: 6, fen_before: '', played_move: 'a7a6', played_eval: 330, centipawn_loss: 59, classification: 'inaccuracy', best_move: 'g8f6', best_eval: -26, analysis_depth: 18 },
+  ],
+};
+
+beforeEach(() => {
+  global.fetch = vi.fn().mockResolvedValue({
+    ok: true,
+    json: async () => mockAnalysisData,
+  });
+  localStorage.setItem('chess_analyser_token', 'test-token');
+});
 
 const mockGame = {
+  url: 'https://www.chess.com/game/live/123456789',
   white_username: 'hikaru',
   white_rating: 3000,
   black_username: 'magnuscarlsen',
@@ -172,12 +198,6 @@ describe('ReviewPage show best move', () => {
     expect(screen.getByText(/back to game/i)).toBeInTheDocument();
   });
 
-  it('shows best move analysis text when active', () => {
-  renderReviewPage(mockGame);
-  fireEvent.click(screen.getByTitle('Next'));
-  fireEvent.click(screen.getByRole('button', { name: /show best move/i }));
-  expect(screen.getByText(/best move shown/i)).toBeInTheDocument();
-});
 
   it('resets best move when navigating', () => {
   renderReviewPage(mockGame);
@@ -259,9 +279,175 @@ describe('ReviewPage analysis text', () => {
     expect(screen.getByText(/white wins/i)).toBeInTheDocument();
   });
 
-  it('shows engine recommendation text mid-game', () => {
+  it('shows no analysis available text mid-game when no data', () => {
   renderReviewPage(mockGame);
   fireEvent.click(screen.getByTitle('Next'));
-  expect(screen.getByText(/use "show best move"/i)).toBeInTheDocument();
+  expect(screen.getByText(/no analysis available/i)).toBeInTheDocument();
 });
+});
+// ---------------------------------------------------------------------------
+// Eval bar
+// ---------------------------------------------------------------------------
+describe('ReviewPage eval bar', () => {
+  it('renders eval bar', () => {
+    renderReviewPage(mockGame);
+    expect(document.querySelector('.eval-bar')).toBeInTheDocument();
+  });
+
+  it('renders eval bar black and white sections', () => {
+    renderReviewPage(mockGame);
+    expect(document.querySelector('.eval-bar-black')).toBeInTheDocument();
+    expect(document.querySelector('.eval-bar-white')).toBeInTheDocument();
+  });
+
+  it('starts at 50/50 at move 0', () => {
+    renderReviewPage(mockGame);
+    const whiteBar = document.querySelector('.eval-bar-white');
+    expect(whiteBar.style.height).toBe('50%');
+  });
+
+  it('eval bar percent stays within 0-100 range', async () => {
+    renderReviewPage(mockGame);
+    await waitFor(() => expect(global.fetch).toHaveBeenCalled());
+    fireEvent.click(screen.getByTitle('Next'));
+    await waitFor(() => {
+      const whiteBar = document.querySelector('.eval-bar-white');
+      const percent = parseFloat(whiteBar.style.height);
+      expect(percent).toBeGreaterThanOrEqual(0);
+      expect(percent).toBeLessThanOrEqual(100);
+    });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Analysis fetch
+// ---------------------------------------------------------------------------
+describe('ReviewPage analysis data fetch', () => {
+  it('fetches analysis data on mount when game has url', async () => {
+    renderReviewPage(mockGame);
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining('/api/analysis/'),
+        expect.objectContaining({
+          headers: expect.objectContaining({ Authorization: 'Bearer test-token' }),
+        })
+      );
+    });
+  });
+
+  it('does not fetch when game has no url', () => {
+    const gameWithoutUrl = { ...mockGame, url: null };
+    renderReviewPage(gameWithoutUrl);
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it('handles fetch failure gracefully', async () => {
+    global.fetch = vi.fn().mockRejectedValue(new Error('Network error'));
+    renderReviewPage(mockGame);
+    await waitFor(() => {
+      expect(screen.getByText(/navigate through the game/i)).toBeInTheDocument();
+    });
+  });
+
+  it('handles non-ok response gracefully', async () => {
+    global.fetch = vi.fn().mockResolvedValue({ ok: false });
+    renderReviewPage(mockGame);
+    await waitFor(() => {
+      expect(screen.getByText(/navigate through the game/i)).toBeInTheDocument();
+    });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Analysis panel — classification display
+// ---------------------------------------------------------------------------
+describe('ReviewPage classification display', () => {
+  it('shows classification after navigating to a move with analysis', async () => {
+    renderReviewPage(mockGame);
+    await waitFor(() => expect(global.fetch).toHaveBeenCalled());
+    fireEvent.click(screen.getByTitle('Next'));
+    await waitFor(() => {
+      expect(screen.getByText(/classification/i)).toBeInTheDocument();
+    });
+  });
+
+  it('shows best emoji for best move', async () => {
+    renderReviewPage(mockGame);
+    await waitFor(() => expect(global.fetch).toHaveBeenCalled());
+    fireEvent.click(screen.getByTitle('Next'));
+    await waitFor(() => {
+      expect(screen.getByText(/✅ Best/)).toBeInTheDocument();
+    });
+  });
+
+  it('shows inaccuracy emoji for inaccuracy move', async () => {
+    renderReviewPage(mockGame);
+    await waitFor(() => expect(global.fetch).toHaveBeenCalled());
+    fireEvent.click(screen.getByTitle('Next'));
+    fireEvent.click(screen.getByTitle('Next'));
+    await waitFor(() => {
+      expect(screen.getByText(/⚠️ Inaccuracy/)).toBeInTheDocument();
+    });
+  });
+
+  it('shows no analysis available when fetch fails', async () => {
+    global.fetch = vi.fn().mockResolvedValue({ ok: false });
+    renderReviewPage(mockGame);
+    fireEvent.click(screen.getByTitle('Next'));
+    await waitFor(() => {
+      expect(screen.getByText(/no analysis available/i)).toBeInTheDocument();
+    });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Best move arrow
+// ---------------------------------------------------------------------------
+describe('ReviewPage best move arrow', () => {
+  it('shows no arrows initially', () => {
+    renderReviewPage(mockGame);
+    const board = screen.getByTestId('chessboard');
+    expect(JSON.parse(board.dataset.arrows)).toEqual([]);
+  });
+
+  it('shows arrow when show best move is clicked with analysis data', async () => {
+    renderReviewPage(mockGame);
+    await waitFor(() => expect(global.fetch).toHaveBeenCalled());
+    fireEvent.click(screen.getByTitle('Next'));
+    fireEvent.click(screen.getByRole('button', { name: /show best move/i }));
+    await waitFor(() => {
+      const arrows = JSON.parse(screen.getByTestId('chessboard').dataset.arrows);
+      expect(arrows.length).toBe(1);
+    });
+  });
+
+  it('parses UCI notation correctly — from and to squares', async () => {
+    renderReviewPage(mockGame);
+    await waitFor(() => expect(global.fetch).toHaveBeenCalled());
+    fireEvent.click(screen.getByTitle('Next'));
+    fireEvent.click(screen.getByRole('button', { name: /show best move/i }));
+    await waitFor(() => {
+      const arrows = JSON.parse(screen.getByTestId('chessboard').dataset.arrows);
+      expect(arrows[0][0]).toBe('e2');
+      expect(arrows[0][1]).toBe('e4');
+    });
+  });
+
+  it('clears arrow when navigating to next move', async () => {
+    renderReviewPage(mockGame);
+    await waitFor(() => expect(global.fetch).toHaveBeenCalled());
+    fireEvent.click(screen.getByTitle('Next'));
+    fireEvent.click(screen.getByRole('button', { name: /show best move/i }));
+    fireEvent.click(screen.getByTitle('Next'));
+    const arrows = JSON.parse(screen.getByTestId('chessboard').dataset.arrows);
+    expect(arrows).toEqual([]);
+  });
+
+  it('shows no arrow at move 0 even when show best move is active', async () => {
+    renderReviewPage(mockGame);
+    await waitFor(() => expect(global.fetch).toHaveBeenCalled());
+    fireEvent.click(screen.getByRole('button', { name: /show best move/i }));
+    const arrows = JSON.parse(screen.getByTestId('chessboard').dataset.arrows);
+    expect(arrows).toEqual([]);
+  });
 });

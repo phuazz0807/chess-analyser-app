@@ -35,6 +35,9 @@ app.add_middleware(
 # Register routers
 app.include_router(auth_router)
 app.include_router(user_router)
+from app.routers.analysis import router as analysis_router
+
+app.include_router(analysis_router)
 
 CHESS_COM_BASE = "https://api.chess.com/pub/player"
 HTTP_HEADERS = {"User-Agent": "ChessAnalyserApp/1.0"}
