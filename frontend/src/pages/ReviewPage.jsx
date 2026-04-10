@@ -430,7 +430,6 @@ function EvalBar({ eval: rawEval, boardSize }) {
 
 function ResultModal({ game, onClose }) {
   const result = getGameResult(game);
-  if (!result) return null;
 // Fire-and-forget: mark the review as done when the modal mounts
   useEffect(() => {
     if (!game.url) return;
@@ -445,6 +444,8 @@ function ResultModal({ game, onClose }) {
       body: JSON.stringify({ game_id: game.url }),
     }).catch(() => {});
   }, [game.url]);
+  
+  if (!result) return null;
 
   return (
     <div className="result-modal-overlay" onClick={onClose}>
@@ -539,6 +540,7 @@ export default function ReviewPage() {
   // Pick a random comment whenever move or classification changes
   useEffect(() => {
     if (moveIndex === 0) {
+      // eslint-disable-next-line
       setCoachComment('Navigate through the game using the buttons below.');
       return;
     }
