@@ -39,6 +39,9 @@ from app.routers.analysis import router as analysis_router
 
 app.include_router(analysis_router)
 
+from app.routers.game_history import router as game_history_router
+app.include_router(game_history_router)
+
 CHESS_COM_BASE = "https://api.chess.com/pub/player"
 HTTP_HEADERS = {"User-Agent": "ChessAnalyserApp/1.0"}
 HTTP_TIMEOUT = 30.0
