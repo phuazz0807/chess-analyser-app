@@ -2,7 +2,7 @@
 SQLAlchemy ORM model for the users table.
 """
 
-from sqlalchemy import BigInteger, Boolean, Column, DateTime, String, func
+from sqlalchemy import BigInteger,Integer, Boolean, Column, DateTime, String, func
 
 from app.core.database import Base
 
@@ -21,7 +21,7 @@ class User(Base):
     """
     __tablename__ = "users"
 
-    user_id = Column(BigInteger, primary_key=True, autoincrement=True)
+    user_id = Column(BigInteger().with_variant(Integer(), "sqlite"), primary_key=True, autoincrement=True)
     email = Column(String, unique=True, nullable=False, index=True)
     password_hash = Column(String, nullable=False)
     is_active = Column(Boolean, default=True, nullable=False)
