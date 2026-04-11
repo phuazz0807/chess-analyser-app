@@ -2,7 +2,7 @@
 SQLAlchemy ORM model for the game_history table.
 """
 
-from sqlalchemy import BigInteger, Column, DateTime, Float, String, Text, func
+from sqlalchemy import BigInteger,Integer, Column, DateTime, Float, String, Text, func
 
 from app.core.database import Base
 
@@ -10,7 +10,7 @@ from app.core.database import Base
 class GameHistory(Base):
     __tablename__ = "game_history"
 
-    user_id = Column(BigInteger, primary_key=True, nullable=False)
+    user_id = Column(BigInteger().with_variant(Integer(), "sqlite"), primary_key=True, nullable=False)
     game_id = Column(String, primary_key=True, nullable=False)
 
     game_url       = Column(String, nullable=False)
