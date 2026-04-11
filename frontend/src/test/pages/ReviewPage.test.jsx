@@ -363,12 +363,12 @@ describe('ReviewPage analysis data fetch', () => {
 // ---------------------------------------------------------------------------
 describe('ReviewPage classification display', () => {
   it('shows classification after navigating to a move with analysis', async () => {
-    renderReviewPage(mockGame);
-    await waitFor(() => expect(global.fetch).toHaveBeenCalled());
-    fireEvent.click(screen.getByTitle('Next'));
-    await waitFor(() => {
-      expect(screen.getByText(/classification/i)).toBeInTheDocument();
-    });
+  renderReviewPage(mockGame);
+  await waitFor(() => expect(global.fetch).toHaveBeenCalled());
+  fireEvent.click(screen.getByTitle('Next'));
+  await waitFor(() => {
+    expect(screen.getByText(/✅ Best/)).toBeInTheDocument();
+  });
   });
 
   it('shows best emoji for best move', async () => {
@@ -451,3 +451,112 @@ describe('ReviewPage best move arrow', () => {
     expect(arrows).toEqual([]);
   });
 });
+
+// ---------------------------------------------------------------------------
+// Game history upsert
+// Append these test cases to the bottom of ReviewPage.test.jsx
+// ---------------------------------------------------------------------------
+describe('ReviewPage game history upsert', () => {
+  it('calls upsert endpoint on mount when game has url', async () => {
+    renderReviewPage(mockGame);
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalledWith(
+        '/api/game-history/upsert',
+        expect.objectContaining({
+          method: 'POST',
+          headers: expect.objectContaining({
+            'Content-Type': 'application/json',
+            Authorization: 'Bearer test-token',
+          }),
+        })
+      );
+    });
+  });
+
+  it('sends correct game_id and game_url in upsert payload', async () => {
+    renderReviewPage(mockGame);
+    await waitFor(() => {
+      const upsertCall = global.fetch.mock.calls.find(
+        call => call[0] === '/api/game-history/upsert'
+      );
+      expect(upsertCall).toBeDefined();
+      const body = JSON.parse(upsertCall[1].body);
+      expect(body.game_id).toBe(mockGame.url);
+      expect(body.game_url).toBe(mockGame.url);
+    });
+  });
+
+  it('sends player info in upsert payload', async () => {
+    renderReviewPage(mockGame);
+    await waitFor(() => {
+      const upsertCall = global.fetch.mock.calls.find(
+        call => call[0] === '/api/game-history/upsert'
+      );
+      const body = JSON.parse(upsertCall[1].body);
+      expect(body.white_username).toBe('hikaru');
+      expect(body.black_username).toBe('magnuscarlsen');
+      expect(body.white_rating).toBe(3000);
+      expect(body.black_rating).toBe(2850);
+    });
+  });
+
+  it('sends pgn, white_result and black_result in upsert payload', async () => {
+    renderReviewPage(mockGame);
+    await waitFor(() => {
+      const upsertCall = global.fetch.mock.calls.find(
+        call => call[0] === '/api/game-history/upsert'
+      );
+      const body = JSON.parse(upsertCall[1].body);
+      expect(body.pgn).toBe(mockGame.pgn);
+      expect(body.white_result).toBe('win');
+      expect(body.black_result).toBe('checkmated');
+    });
+  });
+
+  it('does not call upsert when game has no url', async () => {
+    const gameWithoutUrl = { ...mockGame, url: null };
+    renderReviewPage(gameWithoutUrl);
+    await waitFor(() => expect(global.fetch).not.toHaveBeenCalled());
+  });
+
+  it('calls complete endpoint when result modal is triggered', async () => {
+    renderReviewPage(mockGame);
+    await waitFor(() => expect(global.fetch).toHaveBeenCalled());
+    fireEvent.click(screen.getByTitle('End'));
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalledWith(
+        '/api/game-history/complete',
+        expect.objectContaining({
+          method: 'PATCH',
+          headers: expect.objectContaining({
+            'Content-Type': 'application/json',
+            Authorization: 'Bearer test-token',
+          }),
+        })
+      );
+    });
+  });
+
+  it('sends correct game_id in complete payload', async () => {
+    renderReviewPage(mockGame);
+    await waitFor(() => expect(global.fetch).toHaveBeenCalled());
+    fireEvent.click(screen.getByTitle('End'));
+    await waitFor(() => {
+      const completeCall = global.fetch.mock.calls.find(
+        call => call[0] === '/api/game-history/complete'
+      );
+      expect(completeCall).toBeDefined();
+      const body = JSON.parse(completeCall[1].body);
+      expect(body.game_id).toBe(mockGame.url);
+    });
+  });
+
+  it('handles upsert failure gracefully without breaking the UI', async () => {
+    global.fetch = vi.fn().mockRejectedValue(new Error('Network error'));
+    renderReviewPage(mockGame);
+    await waitFor(() => {
+      expect(screen.getByTestId('chessboard')).toBeInTheDocument();
+      expect(screen.getByText('hikaru')).toBeInTheDocument();
+    });
+  }); 
+}); 
