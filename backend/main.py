@@ -35,7 +35,7 @@ app.add_middleware(
 # Register routers
 app.include_router(auth_router)
 app.include_router(user_router)
-from app.routers.analysis import router as analysis_router
+from app.routers.move_analysis import router as analysis_router
 
 app.include_router(analysis_router)
 
