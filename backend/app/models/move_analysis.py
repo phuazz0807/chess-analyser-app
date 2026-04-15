@@ -5,7 +5,11 @@ from app.core.database import Base
 class MoveAnalysis(Base):
     __tablename__ = "move_analysis"
 
+<<<<<<< HEAD
     user_id = Column(BigInteger, primary_key=True, nullable=False)
+=======
+    user_id = Column(BigInteger, nullable=True)
+>>>>>>> d6bed06908d27d1f5a3c003c922e13a563940f36
     move_number = Column(Integer, primary_key=True, nullable=False)
     game_id = Column(String, primary_key=True, nullable=False)
     fen_before = Column(String, nullable=False)
