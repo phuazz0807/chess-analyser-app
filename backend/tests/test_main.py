@@ -578,8 +578,8 @@ class TestGamesEndpoint:
 
     def test_get_games_no_games_in_range(self, client: TestClient):
         """Test games endpoint when no games found in date range."""
-            with patch("app.routers.games.fetch_archives") as mock_fetch_archives, \
-                 patch("app.routers.games.fetch_monthly_games") as mock_fetch_monthly:
+        with patch("app.routers.games.fetch_archives") as mock_fetch_archives, \
+             patch("app.routers.games.fetch_monthly_games") as mock_fetch_monthly:
             
             mock_fetch_archives.return_value = [
                 "https://api.chess.com/pub/player/testplayer/games/2024/01"
@@ -618,8 +618,8 @@ class TestGamesEndpoint:
         game2 = {"end_time": 1640000000, "white": {}, "black": {}}
         game3 = {"end_time": 1640200000, "white": {}, "black": {}}
         
-            with patch("app.routers.games.fetch_archives") as mock_fetch_archives, \
-                 patch("app.routers.games.fetch_monthly_games") as mock_fetch_monthly:
+        with patch("app.routers.games.fetch_archives") as mock_fetch_archives, \
+             patch("app.routers.games.fetch_monthly_games") as mock_fetch_monthly:
             
             mock_fetch_archives.return_value = [
                 "https://api.chess.com/pub/player/testplayer/games/2021/12"
@@ -663,8 +663,8 @@ class TestEdgeCases:
 
     def test_games_endpoint_with_future_dates(self, client: TestClient):
         """Test games endpoint with future dates."""
-            with patch("app.routers.games.fetch_archives") as mock_fetch_archives, \
-                 patch("app.routers.games.fetch_monthly_games") as mock_fetch_monthly:
+        with patch("app.routers.games.fetch_archives") as mock_fetch_archives, \
+             patch("app.routers.games.fetch_monthly_games") as mock_fetch_monthly:
             
             mock_fetch_archives.return_value = []
             mock_fetch_monthly.return_value = []
@@ -683,8 +683,8 @@ class TestEdgeCases:
 
     def test_games_endpoint_with_very_old_dates(self, client: TestClient):
         """Test games endpoint with very old dates."""
-            with patch("app.routers.games.fetch_archives") as mock_fetch_archives, \
-                 patch("app.routers.games.fetch_monthly_games") as mock_fetch_monthly:
+        with patch("app.routers.games.fetch_archives") as mock_fetch_archives, \
+             patch("app.routers.games.fetch_monthly_games") as mock_fetch_monthly:
             
             mock_fetch_archives.return_value = []
             mock_fetch_monthly.return_value = []
