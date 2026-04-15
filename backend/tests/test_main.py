@@ -472,8 +472,8 @@ class TestGamesEndpoint:
     """Test the /games endpoint."""
 
     def test_get_games_success(self, client: TestClient, sample_chess_game: dict, sample_chess_game_2: dict):
-        """Test successful games retrieval."""
-        # Mock the Chess.com API calls
+            """Test successful games retrieval."""
+            # Mock the Chess.com API calls
             with patch("app.routers.games.fetch_archives") as mock_fetch_archives, \
                  patch("app.routers.games.fetch_monthly_games") as mock_fetch_monthly:
             

@@ -9,6 +9,9 @@ from fastapi import FastAPI
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from typing import Optional
+from datetime import date, datetime, timezone
+import httpx
 from app.routers.analysis import router as analysis_router
 from app.routers.auth import router as auth_router
 from app.routers.games import router as games_router

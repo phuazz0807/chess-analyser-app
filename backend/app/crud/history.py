@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 
 from sqlalchemy.orm import Session
 
-# from app.models.history import GameHistory
+from app.models.history import GameHistory
 from app.schemas.history import GameHistoryRecord
 
 def create_game_history_record(db: Session, user_id: int, game_id: str, parsed_pgn: GameHistoryRecord, status: str):

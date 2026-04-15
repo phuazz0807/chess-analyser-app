@@ -78,7 +78,7 @@ export default function GamesTable({ games, username }) {
         updateRow(gameUrl, { isAnalyzing: false, error: err.message || 'Analysis failed. Try again.' });
       }
     },
-    [getRowState, updateRow],
+    [getRowState, updateRow,navigate, user, username],
   );
 
   if (!games || games.length === 0) return null;
