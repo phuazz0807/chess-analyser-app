@@ -1,7 +1,4 @@
-<<<<<<< HEAD
 import { useState, useCallback } from 'react';
-=======
->>>>>>> d6bed06908d27d1f5a3c003c922e13a563940f36
 import { useNavigate } from 'react-router-dom';
 import { formatDate, computeResult } from '../helpers';
 import { analyzeAndWait } from '../api/analysis.jsx';
@@ -16,7 +13,6 @@ import { useAuth } from '../context/AuthContext.jsx';
 
 /**
  * GamesTable — renders the list of games as a styled table.
-<<<<<<< HEAD
  *
  * Includes an "Analyze" column whose button:
  *   1. Fires a POST to the backend /api/analysis/start
@@ -85,13 +81,6 @@ export default function GamesTable({ games, username }) {
     [getRowState, updateRow],
   );
 
-=======
- * Clicking a row navigates to the review page with game data.
- */
-export default function GamesTable({ games, username }) {
-  const navigate = useNavigate();
-
->>>>>>> d6bed06908d27d1f5a3c003c922e13a563940f36
   if (!games || games.length === 0) return null;
 
   function handleRowClick(game) {
@@ -121,11 +110,7 @@ export default function GamesTable({ games, username }) {
             return (
               <tr
                 key={game.url || idx}
-<<<<<<< HEAD
                 // onClick={() => handleRowClick(game)}
-=======
-                onClick={() => handleRowClick(game)}
->>>>>>> d6bed06908d27d1f5a3c003c922e13a563940f36
                 className="games-table-row"
                 style={{ cursor: 'pointer' }}
               >

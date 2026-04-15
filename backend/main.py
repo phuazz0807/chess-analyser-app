@@ -34,17 +34,11 @@ app.add_middleware(
 # Register routers
 app.include_router(auth_router)
 app.include_router(user_router)
-<<<<<<< HEAD
 app.include_router(analysis_router)
 app.include_router(games_router)
 from app.routers.move_analysis import router as move_analysis_router
 
 app.include_router(move_analysis_router)
-=======
-from app.routers.move_analysis import router as analysis_router
-
-app.include_router(analysis_router)
->>>>>>> d6bed06908d27d1f5a3c003c922e13a563940f36
 
 from app.routers.game_history import router as game_history_router
 app.include_router(game_history_router)
