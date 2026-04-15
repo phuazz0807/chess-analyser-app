@@ -9,16 +9,9 @@ from app.core.database import Base
 
 class User(Base):
     """
-    User model representing the users table in the database.
-    
-    Attributes:
-        user_id: Primary key, auto-incremented
-        email: Unique email address (used as login identifier)
-        password_hash: Bcrypt hashed password
-        is_active: Whether the user account is active
-        created_at: Timestamp when the user was created
-        updated_at: Timestamp when the user was last updated
+    ORM model to store user information, including email and password hash.
     """
+    
     __tablename__ = "users"
 
     user_id = Column(BigInteger().with_variant(Integer(), "sqlite"), primary_key=True, autoincrement=True)

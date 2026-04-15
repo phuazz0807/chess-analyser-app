@@ -3,9 +3,7 @@ User router with endpoints for user profile.
 """
 
 from typing import Annotated
-
 from fastapi import APIRouter, Depends
-
 from app.routers.auth import get_current_user
 from app.schemas.user import UserOut, UserProfileOut
 

@@ -5,7 +5,7 @@ from app.core.database import Base
 class MoveAnalysis(Base):
     __tablename__ = "move_analysis"
 
-    user_id = Column(BigInteger, nullable=True)
+    user_id = Column(BigInteger, primary_key=True, nullable=False)
     move_number = Column(Integer, primary_key=True, nullable=False)
     game_id = Column(String, primary_key=True, nullable=False)
     fen_before = Column(String, nullable=False)
