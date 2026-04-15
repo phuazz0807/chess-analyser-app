@@ -6,12 +6,13 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
+import Layout from './components/Layout';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import Dashboard from './pages/Dashboard';
-import './App.css';
-import Layout from './components/Layout';
 import UserProfile from './pages/UserProfile';
+import ReviewPage from './pages/ReviewPage';
+import './App.css';
 
 export default function App() {
   return (
@@ -32,8 +33,7 @@ export default function App() {
           >
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/profile" element={<UserProfile />} />
-            {/* Placeholder — will be implemented as a full analysis page later */}
-            <Route path="/analysis/:gameId" element={<div style={{ padding: '2rem' }}>Analysis page coming soon.</div>} />
+            <Route path="/review" element={<ReviewPage />} />
           </Route>
 
           {/* Redirect root to login */}

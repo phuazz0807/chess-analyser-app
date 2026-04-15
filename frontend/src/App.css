@@ -273,6 +273,22 @@
   gap: 1rem;
   max-width: 480px;
 }
+.review-btn {
+  margin-left: 0.5rem;
+  padding: 0.25rem 0.6rem;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--accent-green);
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.review-btn:hover {
+  background: var(--accent-green);
+  color: #fff;
+}
 
 .profile-row {
   display: flex;

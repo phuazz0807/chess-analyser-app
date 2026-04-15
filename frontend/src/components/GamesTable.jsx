@@ -72,6 +72,7 @@ export default function GamesTable({ games, username }) {
 
         // Analysis complete — update button state.
         updateRow(gameUrl, { isAnalyzing: false, isAnalyzed: true });
+        navigate('/review', { state: { game, username } });
       } catch (err) {
         // Analysis failed — re‑enable the button and show error.
         updateRow(gameUrl, { isAnalyzing: false, error: err.message || 'Analysis failed. Try again.' });
@@ -81,6 +82,10 @@ export default function GamesTable({ games, username }) {
   );
 
   if (!games || games.length === 0) return null;
+
+  function handleRowClick(game) {
+    navigate('/review', { state: { game, username } });
+  }
 
   return (
     <div className="table-wrapper">
@@ -103,7 +108,12 @@ export default function GamesTable({ games, username }) {
             const rowState = getRowState(game.url);
 
             return (
-              <tr key={game.url || idx}>
+              <tr
+                key={game.url || idx}
+                // onClick={() => handleRowClick(game)}
+                className="games-table-row"
+                style={{ cursor: 'pointer' }}
+              >
                 {/* Game Mode */}
                 <td className="cell-mode">
                   {game.time_class || '—'}
@@ -150,8 +160,8 @@ export default function GamesTable({ games, username }) {
                   )}
                 </td>
 
-                {/* Game URL */}
-                <td className="cell-url">
+                {/* Game URL — stop propagation so clicking View doesn't also trigger row click */}
+                <td className="cell-url" onClick={(e) => e.stopPropagation()}>
                   {game.url ? (
                     <a href={game.url} target="_blank" rel="noopener noreferrer">
                       View
@@ -159,7 +169,14 @@ export default function GamesTable({ games, username }) {
                   ) : (
                     '—'
                   )}
+                  <button
+                    className="review-btn"
+                    onClick={() => handleRowClick(game)}
+                  >
+                    Review
+                  </button>
                 </td>
+
 
                 {/* Date */}
                 <td className="cell-date">
