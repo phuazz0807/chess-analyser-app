@@ -24,8 +24,8 @@ class GameHistory(Base):
     black_rating = Column(Integer, nullable=True)
     white_accuracy = Column(Float, nullable=True)
     black_accuracy = Column(Float, nullable=True)
-    white_ACPL = Column(Float, nullable=True)
-    black_ACPL = Column(Float, nullable=True)
+    white_ACPL = Column("white_acpl", Float, nullable=True)
+    black_ACPL = Column("black_acpl", Float, nullable=True)
     analysis_status = Column(String, nullable=False)
     created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
 

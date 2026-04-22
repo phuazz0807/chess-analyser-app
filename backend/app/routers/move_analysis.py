@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.models.move_analysis import MoveAnalysis
+from app.models.analysis import MoveAnalysis
 from app.routers.auth import get_current_user
 from app.schemas.move_analysis import GameAnalysisResponse, MoveAnalysisOut
 from app.schemas.user import UserOut

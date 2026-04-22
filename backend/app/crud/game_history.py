@@ -5,7 +5,7 @@ CRUD operations for the game_history table.
 from sqlalchemy.orm import Session
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 
-from app.models.game_history import GameHistory
+from app.models.history import GameHistory
 from app.schemas.game_history import GameHistoryUpsert
 
 
