@@ -24,7 +24,7 @@ router = APIRouter(prefix="/api/analysis", tags=["Analysis"])
 # ):
 #     return GameAnalysisResponse(game_id=game_id, moves=[])
 
-@router.get("/{game_id:path}", response_model=GameAnalysisResponse)
+@router.get("/moves/{game_id:path}", response_model=GameAnalysisResponse)
 async def get_game_analysis(
     game_id: str,
     current_user: Annotated[UserOut, Depends(get_current_user)],

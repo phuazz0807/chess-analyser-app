@@ -24,6 +24,7 @@ import httpx
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
+from app.models.move_analysis import MoveAnalysis
 
 from app.core.database import SessionLocal, get_db
 from app.crud.analysis import create_move_analysis_record
@@ -127,31 +128,28 @@ async def analysis_callback(payload: AnalysisCallbackPayload):
     return {"message": "Analysis callback received", "game_id": payload.game_id}
 
 
-@router.get("/status/{user_id}/{game_id}", response_model=AnalysisStatusResponse)
-async def analysis_status(user_id: int, game_id: str):
-    """
-    Poll endpoint — returns the current analysis status for a game.
+@router.get("/status/{user_id}/{game_id:path}", response_model=AnalysisStatusResponse)
+async def analysis_status(
+    user_id: int,
+    game_id: str,
+    db: Session = Depends(get_db),
+):
+    from app.models.move_analysis import MoveAnalysis
+    count = db.query(MoveAnalysis).filter(MoveAnalysis.game_id == game_id).count()
+    if count == 0:
+        return AnalysisStatusResponse(game_id=game_id, status="pending", error=None)
+    return AnalysisStatusResponse(game_id=game_id, status="done", error=None)
 
-    Path params:
-        user_id  — user who submitted the analysis
-        game_id  — the game being analyzed
-
-    Statuses:
-        pending — analysis is still running
-        done    — results are available at /api/analysis/result/{user_id}/{game_id}
-        error   — analysis failed; error message included
-    """
-    composite_key = f"{user_id}:{game_id}"
-    entry = _analysis_store.get(composite_key)
-    if entry is None:
-        raise HTTPException(status_code=404, detail="No analysis found for this game.")
-
-    return AnalysisStatusResponse(
-        game_id=game_id,
-        status=entry["status"],
-        error=entry.get("error"),
-    )
-
+@router.post("/status/batch")
+async def batch_analysis_status(
+    game_ids: list[str],
+    db: Session = Depends(get_db),
+):
+    results = {}
+    for game_id in game_ids:
+        count = db.query(MoveAnalysis).filter(MoveAnalysis.game_id == game_id).count()
+        results[game_id] = "done" if count > 0 else "pending"
+    return results
 
 @router.get("/result/{user_id}/{game_id}")
 async def analysis_result(user_id: int, game_id: str):

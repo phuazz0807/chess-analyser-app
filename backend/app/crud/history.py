@@ -44,8 +44,8 @@ def create_game_history_record(db: Session, user_id: int, game_id: str, parsed_p
         black_rating=parsed_pgn.black_rating,
         white_accuracy=None,
         black_accuracy=None,
-        white_ACPL=None,
-        black_ACPL=None,
+        white_acpl=None,
+        black_acpl=None,
         analysis_status=status,
         created_at=datetime.now(tz=timezone.utc),
     )

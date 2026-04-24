@@ -16,6 +16,13 @@
   font-size: 0.95rem;
 }
 
+.analyze-btn--done {
+  background: #9b7fd4;
+}
+.analyze-btn--done:hover {
+  opacity: 0.85;
+}
+
 /* ---- Query Form ---- */
 .query-form {
   background: var(--bg-secondary);
@@ -336,7 +343,7 @@
 
 /* "View Analysis" button — distinct colour so user knows it's done */
 .analyze-btn--done {
-  background: var(--accent-draw, #b58863);
+  background: #9b84c7;
 }
 .analyze-btn--done:hover {
   opacity: 0.85;
