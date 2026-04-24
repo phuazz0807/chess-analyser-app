@@ -13,7 +13,7 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
-from app.models.move_analysis import MoveAnalysis
+from app.models.analysis import MoveAnalysis
 from app.models.user import User
 
 
