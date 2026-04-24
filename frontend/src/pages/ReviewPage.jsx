@@ -495,7 +495,7 @@ export default function ReviewPage() {
   useEffect(() => {
     if (!game.url) return;
     const token = localStorage.getItem('chess_analyser_token');
-    fetch(`/api/analysis/${encodeURIComponent(game.url)}`, {
+    fetch(`/api/analysis/moves/${encodeURIComponent(game.url)}`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then(res => res.ok ? res.json() : null)

@@ -24,10 +24,10 @@ const API_BASE = '/api/analysis';
  * @param {number} depth    — analysis depth (10–25, default 18)
  * @returns {Promise<{message: string, game_id: string}>}
  */
-export async function startAnalysis(userId, gameId, pgn, depth = 18) {
+export async function startAnalysis(userId, gameId, pgn, depth = 18,token) {
   const response = await fetch(`${API_BASE}/start`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json','Authorization': `Bearer ${token}` },
     body: JSON.stringify({
       user_id: userId,
       game_id: gameId,
@@ -51,10 +51,15 @@ export async function startAnalysis(userId, gameId, pgn, depth = 18) {
  * @param {string} gameId
  * @returns {Promise<{game_id: string, status: 'pending'|'done'|'error', error: string|null}>}
  */
-export async function pollStatus(gameId) {
-  const response = await fetch(`${API_BASE}/status/${encodeURIComponent(gameId)}`);
+export async function pollStatus(gameId,userId,token) {
+  const response = await fetch(`${API_BASE}/status/${userId}/${encodeURIComponent(gameId)}`, {
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
+  
+  if (response.status === 404) {
+    return { status: 'pending' };
+  }
   const data = await response.json();
-
   if (!response.ok) {
     throw new Error(data.detail || 'Failed to check analysis status');
   }
@@ -98,12 +103,13 @@ export async function analyzeAndWait(
   pgn,
   depth = 18,
   userId,
+  token,
   intervalMs = 3000,
-  maxRetries = 100,
+  maxRetries = 500,
   signal = undefined,
 ) {
   // 1. Trigger the analysis.
-  await startAnalysis(userId, gameId, pgn, depth);
+  await startAnalysis(userId, gameId, pgn, depth,token);
 
   // 2. Poll until done / error / timeout.
   for (let attempt = 0; attempt < maxRetries; attempt++) {
@@ -114,7 +120,7 @@ export async function analyzeAndWait(
 
     await new Promise((resolve) => setTimeout(resolve, intervalMs));
 
-    const statusResp = await pollStatus(gameId);
+    const statusResp = await pollStatus(gameId,userId,token);
 
     if (statusResp.status === 'done') {
       return statusResp;

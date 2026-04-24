@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { formatDate, computeResult } from '../helpers';
 import { analyzeAndWait } from '../api/analysis.jsx';
@@ -20,11 +20,40 @@ import { useAuth } from '../context/AuthContext.jsx';
  *   3. Swaps to "View Analysis" on completion
  */
 export default function GamesTable({ games, username }) {
-  const { user } = useAuth();
+  const { user , token} = useAuth();
   const navigate = useNavigate();
 
   // Row‑level analysis state keyed by game url (unique per game).
   const [analysisState, setAnalysisState] = useState({});
+
+  // Batch check which games are already analyzed on load
+  useEffect(() => {
+    if (!games || games.length === 0 || !token) return;
+
+    const gameIds = games.map((g) => g.url).filter(Boolean);
+
+    fetch('/api/analysis/status/batch', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify(gameIds),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        const initial = {};
+        for (const [gameId, status] of Object.entries(data)) {
+          initial[gameId] = {
+            isAnalyzing: false,
+            isAnalyzed: status === 'done',
+            error: null,
+          };
+        }
+        setAnalysisState(initial);
+      })
+      .catch((err) => console.error('Batch status check failed:', err));
+  }, [games, token]);
 
   /**
    * Return the state object for a specific game, with sensible defaults.
@@ -68,7 +97,7 @@ export default function GamesTable({ games, username }) {
 
       try {
         // Use game URL as the unique ID and send PGN + default depth.
-        await analyzeAndWait(gameUrl, game.pgn, 18, user.user_id);
+        await analyzeAndWait(gameUrl, game.pgn, 18, user.user_id,token);
 
         // Analysis complete — update button state.
         updateRow(gameUrl, { isAnalyzing: false, isAnalyzed: true });
@@ -78,14 +107,14 @@ export default function GamesTable({ games, username }) {
         updateRow(gameUrl, { isAnalyzing: false, error: err.message || 'Analysis failed. Try again.' });
       }
     },
-    [getRowState, updateRow,navigate, user, username],
+    [getRowState, updateRow,navigate, user, username,token],
   );
 
   if (!games || games.length === 0) return null;
 
-  function handleRowClick(game) {
-    navigate('/review', { state: { game, username } });
-  }
+  // function handleRowClick(game) {
+  //   navigate('/review', { state: { game, username } });
+  // }
 
   return (
     <div className="table-wrapper">
@@ -169,12 +198,12 @@ export default function GamesTable({ games, username }) {
                   ) : (
                     '—'
                   )}
-                  <button
+                  {/* <button
                     className="review-btn"
                     onClick={() => handleRowClick(game)}
                   >
                     Review
-                  </button>
+                  </button> */}
                 </td>
 
 
@@ -186,12 +215,11 @@ export default function GamesTable({ games, username }) {
                 {/* Analyze — per‑row button with loading / done / error states */}
                 <td className="cell-analyze">
                   {rowState.isAnalyzed ? (
-                    /* Analysis complete → navigate to results page */
                     <button
                       className="analyze-btn analyze-btn--done"
-                      onClick={() => navigate(`/analysis/${encodeURIComponent(game.url)}`)}
+                      onClick={() => navigate('/review', { state: { game, username } })}
                     >
-                      View Analysis
+                      Review
                     </button>
                   ) : (
                     <button
@@ -200,14 +228,10 @@ export default function GamesTable({ games, username }) {
                       onClick={() => handleAnalyze(game)}
                     >
                       {rowState.isAnalyzing ? (
-                        /* Inline spinner while analysis is running */
                         <span className="analyze-loading">
                           <span className="analyze-spinner" />
-                          {/* Analyzing... */}
                         </span>
-                      ) : (
-                        'Analyze'
-                      )}
+                      ) : 'Analyze'}
                     </button>
                   )}
 
