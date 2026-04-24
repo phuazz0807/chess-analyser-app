@@ -14,7 +14,7 @@ import pytest
 from sqlalchemy.orm import Session
 
 from app.crud.game_history import complete_game_history, get_game_history_for_user
-from app.models.game_history import GameHistory
+from app.models.history import GameHistory
 
 
 # ---------------------------------------------------------------------------
