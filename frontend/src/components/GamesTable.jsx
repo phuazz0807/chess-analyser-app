@@ -112,9 +112,9 @@ export default function GamesTable({ games, username }) {
 
   if (!games || games.length === 0) return null;
 
-  function handleRowClick(game) {
-    navigate('/review', { state: { game, username } });
-  }
+  // function handleRowClick(game) {
+  //   navigate('/review', { state: { game, username } });
+  // }
 
   return (
     <div className="table-wrapper">
