@@ -5,15 +5,16 @@ Run locally:
     uvicorn main:app --reload
 """
 
-from datetime import date, datetime, timezone
-from typing import Optional
-
-import httpx
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI
+from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-
+from typing import Optional
+from datetime import date, datetime, timezone
+import httpx
+from app.routers.analysis import router as analysis_router
 from app.routers.auth import router as auth_router
+from app.routers.games import router as games_router
 from app.routers.user import router as user_router
 
 app = FastAPI(title="Chess Analyser", version="1.0.0")
@@ -26,6 +27,7 @@ app.add_middleware(
         "http://localhost:3000",  # Alternative dev port
         "http://127.0.0.1:5173",
         "http://127.0.0.1:3000",
+        "http://localhost:8001",
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -35,6 +37,14 @@ app.add_middleware(
 # Register routers
 app.include_router(auth_router)
 app.include_router(user_router)
+app.include_router(analysis_router)
+app.include_router(games_router)
+from app.routers.move_analysis import router as move_analysis_router
+
+app.include_router(move_analysis_router)
+
+from app.routers.game_history import router as game_history_router
+app.include_router(game_history_router)
 
 CHESS_COM_BASE = "https://api.chess.com/pub/player"
 HTTP_HEADERS = {"User-Agent": "ChessAnalyserApp/1.0"}

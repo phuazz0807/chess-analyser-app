@@ -17,17 +17,16 @@ import pytest
 from fastapi.testclient import TestClient
 import httpx
 
-from main import (
-    parse_date,
-    validate_date_range,
-    months_in_range,
+from app.crud.games import fetch_archives, fetch_monthly_games
+from app.utils.games import (
     filter_archive_urls,
     game_in_range,
     map_game,
-    fetch_archives,
-    fetch_monthly_games,
-    app,
+    months_in_range,
+    parse_date,
+    validate_date_range,
 )
+from main import app
 
 
 class TestDateParsing:
@@ -474,9 +473,9 @@ class TestGamesEndpoint:
 
     def test_get_games_success(self, client: TestClient, sample_chess_game: dict, sample_chess_game_2: dict):
         """Test successful games retrieval."""
-        # Mock the Chess.com API calls
-        with patch("main.fetch_archives") as mock_fetch_archives, \
-             patch("main.fetch_monthly_games") as mock_fetch_monthly:
+            # Mock the Chess.com API calls
+        with patch("app.routers.games.fetch_archives") as mock_fetch_archives, \
+             patch("app.routers.games.fetch_monthly_games") as mock_fetch_monthly:
             
             mock_fetch_archives.return_value = [
                 "https://api.chess.com/pub/player/testplayer/games/2024/01"
@@ -559,7 +558,7 @@ class TestGamesEndpoint:
 
     def test_get_games_user_not_found(self, client: TestClient):
         """Test games endpoint when Chess.com user doesn't exist."""
-        with patch("main.fetch_archives") as mock_fetch_archives:
+        with patch("app.routers.games.fetch_archives") as mock_fetch_archives:
             from fastapi import HTTPException
             mock_fetch_archives.side_effect = HTTPException(
                 status_code=404,
@@ -579,8 +578,8 @@ class TestGamesEndpoint:
 
     def test_get_games_no_games_in_range(self, client: TestClient):
         """Test games endpoint when no games found in date range."""
-        with patch("main.fetch_archives") as mock_fetch_archives, \
-             patch("main.fetch_monthly_games") as mock_fetch_monthly:
+        with patch("app.routers.games.fetch_archives") as mock_fetch_archives, \
+             patch("app.routers.games.fetch_monthly_games") as mock_fetch_monthly:
             
             mock_fetch_archives.return_value = [
                 "https://api.chess.com/pub/player/testplayer/games/2024/01"
@@ -619,8 +618,8 @@ class TestGamesEndpoint:
         game2 = {"end_time": 1640000000, "white": {}, "black": {}}
         game3 = {"end_time": 1640200000, "white": {}, "black": {}}
         
-        with patch("main.fetch_archives") as mock_fetch_archives, \
-             patch("main.fetch_monthly_games") as mock_fetch_monthly:
+        with patch("app.routers.games.fetch_archives") as mock_fetch_archives, \
+             patch("app.routers.games.fetch_monthly_games") as mock_fetch_monthly:
             
             mock_fetch_archives.return_value = [
                 "https://api.chess.com/pub/player/testplayer/games/2021/12"
@@ -664,8 +663,8 @@ class TestEdgeCases:
 
     def test_games_endpoint_with_future_dates(self, client: TestClient):
         """Test games endpoint with future dates."""
-        with patch("main.fetch_archives") as mock_fetch_archives, \
-             patch("main.fetch_monthly_games") as mock_fetch_monthly:
+        with patch("app.routers.games.fetch_archives") as mock_fetch_archives, \
+             patch("app.routers.games.fetch_monthly_games") as mock_fetch_monthly:
             
             mock_fetch_archives.return_value = []
             mock_fetch_monthly.return_value = []
@@ -684,8 +683,8 @@ class TestEdgeCases:
 
     def test_games_endpoint_with_very_old_dates(self, client: TestClient):
         """Test games endpoint with very old dates."""
-        with patch("main.fetch_archives") as mock_fetch_archives, \
-             patch("main.fetch_monthly_games") as mock_fetch_monthly:
+        with patch("app.routers.games.fetch_archives") as mock_fetch_archives, \
+             patch("app.routers.games.fetch_monthly_games") as mock_fetch_monthly:
             
             mock_fetch_archives.return_value = []
             mock_fetch_monthly.return_value = []
