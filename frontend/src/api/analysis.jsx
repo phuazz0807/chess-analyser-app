@@ -10,7 +10,7 @@
  * the status flips to "done" or "error".
  */
 
-const API_BASE = `${import.meta.env.VITE_API_URL}/api/analysis`;
+const API_BASE = import.meta.env.VITE_API_URL;
 
 /**
  * Kick off Stockfish analysis for a game.
