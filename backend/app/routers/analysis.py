@@ -45,7 +45,7 @@ logger = logging.getLogger(__name__)
 
 # URL of the Stockfish microservice (Docker service name or localhost).
 STOCKFISH_SERVICE_URL = f"{os.getenv('STOCKFISH_URL')}/analyze"
-STOCKFISH_TIMEOUT = 300  # generous timeout for deep analysis
+STOCKFISH_TIMEOUT = 600  # generous timeout for deep analysis
 
 # ---------------------------------------------------------------------------
 # In-memory store (placeholder — swap for Supabase persistence later)
