@@ -36,6 +36,7 @@ from app.schemas.analysis import (
     AnalysisStatusResponse,
 )
 from app.utils.history import parse_pgn
+from app.utils.ids import extract_game_id
 
 logger = logging.getLogger(__name__)
 
