@@ -176,3 +176,29 @@ jobs:
 
       - name: Build frontend image
         run: docker build -t frontend ./frontend
+
+  integration-test:
+    name: Integration Test (Docker Compose)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Start services
+        run: docker compose up -d --build
+
+      - name: Wait for backend
+        run: |
+          for i in {1..20}; do
+            if curl --fail http://localhost:8000/docs; then
+              exit 0
+            fi
+            sleep 3
+          done
+          exit 1
+
+      - name: Test API
+        run: curl --fail http://localhost:8000/docs
+
+      - name: Shutdown
+        run: docker compose down
