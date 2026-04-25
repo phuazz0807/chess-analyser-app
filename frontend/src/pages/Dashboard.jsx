@@ -8,8 +8,6 @@ import QueryForm from '../components/QueryForm';
 import GamesTable from '../components/GamesTable';
 import '../App.css';
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL;
-
 export default function Dashboard() {
   const [games, setGames] = useState([]);
   const [username, setUsername] = useState('');
@@ -31,7 +29,7 @@ export default function Dashboard() {
         end_date: endDate,
       });
 
-      const res = await fetch(`${API_BASE}/games?${params}`);
+      const res = await fetch(`/games?${params}`);
       const data = await res.json();
 
       if (!res.ok) {

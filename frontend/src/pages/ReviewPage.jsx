@@ -9,7 +9,6 @@ import { Chessboard } from 'react-chessboard';
 import { Chess } from 'chess.js';
 import './ReviewPage.css';
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL;
 const PLACEHOLDER_GAME = {
   white_username: 'hikaru',
   white_rating: 3000,
@@ -436,7 +435,7 @@ function ResultModal({ game, onClose }) {
     if (!game.url) return;
     const token = localStorage.getItem('chess_analyser_token');
  
-    fetch(`${API_BASE}/api/game-history/complete`, {
+    fetch('/api/game-history/complete', {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
@@ -496,7 +495,7 @@ export default function ReviewPage() {
   useEffect(() => {
     if (!game.url) return;
     const token = localStorage.getItem('chess_analyser_token');
-    fetch(`${API_BASE}/api/analysis/moves/${encodeURIComponent(game.url)}`, {
+    fetch(`/api/analysis/moves/${encodeURIComponent(game.url)}`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then(res => res.ok ? res.json() : null)
@@ -508,7 +507,7 @@ export default function ReviewPage() {
   if (!game.url) return;
   const token = localStorage.getItem('chess_analyser_token');
  
-  fetch(`${API_BASE}/api/game-history/upsert`, {
+  fetch('/api/game-history/upsert', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

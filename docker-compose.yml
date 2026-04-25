@@ -10,6 +10,8 @@ services:
       - ./backend/.env
     volumes:
       - ./backend:/app
+    depends_on:
+      - stockfish
 
   frontend:
     build: ./frontend
@@ -21,3 +23,9 @@ services:
       - /app/node_modules
     depends_on:
       - backend
+
+  stockfish:
+    build: ./stockfish
+    container_name: stockfish-service
+    ports:
+      - "8001:8001"
