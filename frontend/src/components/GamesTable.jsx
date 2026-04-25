@@ -88,7 +88,7 @@ export default function GamesTable({ games, username }) {
       const gameUrl = game.url;
         console.log(`Starting analysis for game ${gameUrl}`);
         console.log(JSON.stringify(game, null, 2));
-        console.log(`Game ID: ${game.game_id}, PGN length: ${game.pgn ? game.pgn.length : 'N/A'}`);
+        console.log(`Game ID: ${game.id}, PGN length: ${game.pgn ? game.pgn.length : 'N/A'}`);
 
       // Prevent duplicate clicks.
       const current = getRowState(gameUrl);
