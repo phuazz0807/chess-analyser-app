@@ -104,49 +104,34 @@ export async function analyzeAndWait(
   depth = 18,
   userId,
   token,
-  intervalMs = 3000,
+  intervalMs = 10000,
   maxRetries = 500,
   signal = undefined,
 ) {
   // 1. Trigger the analysis.
   await startAnalysis(userId, gameId, pgn, depth,token);
 
-  // 2. Return a promise that resolves when SSE sends "done"
-  return new Promise((resolve, reject) => {
-    const es = new EventSource(
-        `${import.meta.env.VITE_API_BASE_URL}/api/analysis/subscribe/${userId}/${gameId}`
-    );
-
-    // Optional: allow cancellation
-    if (signal) {
-      signal.addEventListener("abort", () => {
-        es.close();
-        reject(new Error("Analysis cancelled"));
-      });
+  // 2. Poll until done / error / timeout.
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    // Respect cancellation.
+    if (signal?.aborted) {
+      throw new Error('Analysis polling was cancelled');
     }
 
-    es.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
+    await new Promise((resolve) => setTimeout(resolve, intervalMs));
 
-        if (data.status === "done") {
-          es.close();
-          resolve(data);
-        }
+    const statusResp = await pollStatus(gameId,userId,token);
 
-        if (data.status === "error") {
-          es.close();
-          reject(new Error(data.error || "Analysis failed"));
-        }
-      } catch (err) {
-        es.close();
-        reject(err);
-      }
-    };
+    if (statusResp.status === 'done') {
+      return statusResp;
+    }
 
-    es.onerror = () => {
-      es.close();
-      reject(new Error("SSE connection failed"));
-    };
-  });
+    if (statusResp.status === 'error') {
+      throw new Error(statusResp.error || 'Analysis failed on the server');
+    }
+
+    // Still pending — continue polling.
+  }
+
+  throw new Error('Analysis timed out — please try again later');
 }

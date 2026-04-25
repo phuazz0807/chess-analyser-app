@@ -177,7 +177,7 @@ async def analysis_result(user_id: int, game_id: str):
     return entry["result"]
 
 
-@router.get("/subscribe/{user_id}/{game_id:path}")
+@router.get("/subscribe/{user_id}/{game_id}")
 async def subscribe_to_analysis(user_id: int, game_id: str):
     """
     Server-Sent Events (SSE) endpoint — subscribe to real-time analysis completion.
