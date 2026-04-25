@@ -43,7 +43,7 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 # URL of the Stockfish microservice (Docker service name or localhost).
-STOCKFISH_SERVICE_URL = "http://localhost:8001/analyze"
+STOCKFISH_SERVICE_URL = "http://stockfish:8001/analyze"
 STOCKFISH_TIMEOUT = 300  # generous timeout for deep analysis
 
 # ---------------------------------------------------------------------------
