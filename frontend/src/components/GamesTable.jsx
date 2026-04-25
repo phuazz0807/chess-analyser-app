@@ -88,7 +88,7 @@ export default function GamesTable({ games, username }) {
       const gameUrl = game.url;
         console.log(`Starting analysis for game ${gameUrl}`);
         console.log(JSON.stringify(game, null, 2));
-        console.log(`Game ID: ${game.idx}, PGN length: ${game.pgn ? game.pgn.length : 'N/A'}`);
+        console.log(`Game ID: ${game.game_id}, PGN length: ${game.pgn ? game.pgn.length : 'N/A'}`);
 
       // Prevent duplicate clicks.
       const current = getRowState(gameUrl);
@@ -133,13 +133,13 @@ export default function GamesTable({ games, username }) {
           </tr>
         </thead>
         <tbody>
-          {games.map((game, idx) => {
+          {games.map((game, game_id) => {
             const { label, className } = computeResult(game, username);
             const rowState = getRowState(game.url);
 
             return (
               <tr
-                key={game.url || idx}
+                key={game.url || game_id}
                 // onClick={() => handleRowClick(game)}
                 className="games-table-row"
                 style={{ cursor: 'pointer' }}
