@@ -15,7 +15,7 @@ settings = get_settings()
 # echo=True for debugging, set to False in production
 engine = create_engine(
     settings.DATABASE_URL,
-    echo=True,
+    echo=False,
     future=True,
     pool_pre_ping=True  # Verify connections before using
 )
