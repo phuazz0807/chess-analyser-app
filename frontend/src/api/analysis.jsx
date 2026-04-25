@@ -105,7 +105,7 @@ export async function analyzeAndWait(
   userId,
   token,
   intervalMs = 10000,
-  maxRetries = 500,
+  maxRetries = 50000,
   signal = undefined,
 ) {
   // 1. Trigger the analysis.
