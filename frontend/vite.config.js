@@ -7,11 +7,11 @@ export default defineConfig({
     host: true,
     proxy: {
       '/games': {
-        target: process.env.VITE_DEV_API || 'http://backend:8000',
+        target: 'http://backend:8000',
         changeOrigin: true,
       },
       '/api': {
-        target: process.env.VITE_DEV_API || 'http://backend:8000',
+        target: 'http://backend:8000',
         changeOrigin: true,
       },
     },
