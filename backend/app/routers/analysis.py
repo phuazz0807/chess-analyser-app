@@ -86,7 +86,7 @@ async def start_analysis(
     Frontend should subscribe to /api/analysis/subscribe/{user_id}/{game_id} to receive
     a real-time notification when analysis completes.
     """
-    game_id = request.game_id
+    game_id = extract_game_id(request.game_id)
     user_id = request.user_id
     composite_key = f"{user_id}:{game_id}"
 
@@ -129,7 +129,7 @@ async def analysis_callback(payload: AnalysisCallbackPayload):
     return {"message": "Analysis callback received", "game_id": payload.game_id}
 
 
-@router.get("/status/{user_id}/{game_id:path}", response_model=AnalysisStatusResponse)
+@router.get("/status/{user_id}/{game_id}", response_model=AnalysisStatusResponse)
 async def analysis_status(
     user_id: int,
     game_id: str,
