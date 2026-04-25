@@ -9,6 +9,7 @@ import { useAuth } from '../context/AuthContext';
 import '../App.css';
 import './UserProfile.css';
 
+const API_BASE = import.meta.env.VITE_API_BASE_URL;
 const CHESS_PIECES = ['♔', '♕', '♖', '♗', '♘', '♙', '♚', '♛', '♜', '♝', '♞', '♟'];
 
 function FloatingPieces() {
@@ -67,7 +68,7 @@ export default function UserProfile() {
   useEffect(() => {
     async function fetchProfile() {
       try {
-        const res  = await fetch('/api/user/profile', {
+        const res  = await fetch(`${API_BASE}/api/user/profile`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -88,7 +89,7 @@ export default function UserProfile() {
   useEffect(() => {
     async function fetchGames() {
       try {
-        const res  = await fetch('/api/game-history/', {
+        const res  = await fetch(`\`${API_BASE}/api/game-history/`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
