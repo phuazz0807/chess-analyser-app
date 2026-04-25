@@ -30,9 +30,8 @@ export default function GamesTable({ games, username }) {
   useEffect(() => {
     if (!games || games.length === 0 || !token) return;
 
-    const gameIds = games
-      .map((g) => g.url?.match(/\/game\/live\/(\d+)/)?.[1])
-      .filter(Boolean);
+    const gameIds = games.map((g) => g.url).filter(Boolean);
+
     fetch('/api/analysis/status/batch', {
       method: 'POST',
       headers: {

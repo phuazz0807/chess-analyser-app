@@ -36,7 +36,6 @@ from app.schemas.analysis import (
     AnalysisStatusResponse,
 )
 from app.utils.history import parse_pgn
-from app.utils.ids import extract_game_id
 
 logger = logging.getLogger(__name__)
 
@@ -46,7 +45,7 @@ logger = logging.getLogger(__name__)
 
 # URL of the Stockfish microservice (Docker service name or localhost).
 STOCKFISH_SERVICE_URL = f"{os.getenv('STOCKFISH_URL')}/analyze"
-STOCKFISH_TIMEOUT = 600  # generous timeout for deep analysis
+STOCKFISH_TIMEOUT = 300  # generous timeout for deep analysis
 
 # ---------------------------------------------------------------------------
 # In-memory store (placeholder — swap for Supabase persistence later)
@@ -87,7 +86,7 @@ async def start_analysis(
     Frontend should subscribe to /api/analysis/subscribe/{user_id}/{game_id} to receive
     a real-time notification when analysis completes.
     """
-    game_id = extract_game_id(request.game_id)
+    game_id = request.game_id
     user_id = request.user_id
     composite_key = f"{user_id}:{game_id}"
 
@@ -130,7 +129,7 @@ async def analysis_callback(payload: AnalysisCallbackPayload):
     return {"message": "Analysis callback received", "game_id": payload.game_id}
 
 
-@router.get("/status/{user_id}/{game_id}", response_model=AnalysisStatusResponse)
+@router.get("/status/{user_id}/{game_id:path}", response_model=AnalysisStatusResponse)
 async def analysis_status(
     user_id: int,
     game_id: str,
