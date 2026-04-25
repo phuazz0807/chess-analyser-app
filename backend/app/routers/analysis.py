@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import os
 from typing import Dict
 
 import httpx
@@ -43,7 +44,7 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 # URL of the Stockfish microservice (Docker service name or localhost).
-STOCKFISH_SERVICE_URL = "http://stockfish:8001/analyze"
+STOCKFISH_SERVICE_URL = f"{os.getenv('STOCKFISH_URL')}/analyze"
 STOCKFISH_TIMEOUT = 300  # generous timeout for deep analysis
 
 # ---------------------------------------------------------------------------
