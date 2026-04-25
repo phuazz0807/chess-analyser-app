@@ -508,7 +508,7 @@ export default function ReviewPage() {
   if (!game.url) return;
   const token = localStorage.getItem('chess_analyser_token');
  
-  fetch('/api/game-history/upsert', {
+  fetch(`${API_BASE}/api/game-history/upsert`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

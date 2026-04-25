@@ -89,7 +89,7 @@ export default function UserProfile() {
   useEffect(() => {
     async function fetchGames() {
       try {
-        const res  = await fetch(`\`${API_BASE}/api/game-history/`, {
+        const res  = await fetch(`  ${API_BASE}/api/game-history/`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
