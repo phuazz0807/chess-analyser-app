@@ -133,13 +133,13 @@ export default function GamesTable({ games, username }) {
           </tr>
         </thead>
         <tbody>
-          {games.map((game, game_id) => {
+          {games.map((game, id) => {
             const { label, className } = computeResult(game, username);
             const rowState = getRowState(game.url);
 
             return (
               <tr
-                key={game.url || game_id}
+                key={game.url || id}
                 // onClick={() => handleRowClick(game)}
                 className="games-table-row"
                 style={{ cursor: 'pointer' }}
