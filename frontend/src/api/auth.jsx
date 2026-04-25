@@ -2,7 +2,7 @@
  * Authentication API functions for communicating with the backend.
  */
 
-const API_BASE = `${import.meta.env.VITE_API_URL}/api/auth`;
+const API_BASE = `${import.meta.env.VITE_API_BASE_URL}/api/auth`;
 
 /**
  * Login user with email and password.
