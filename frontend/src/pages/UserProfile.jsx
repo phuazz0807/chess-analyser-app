@@ -93,6 +93,7 @@ export default function UserProfile() {
         const res  = await fetch(`${API_BASE}/api/game-history/`, {          headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
+        console.log("games response:", data);
         if (!res.ok) { setGamesError(data.detail || `Request failed (HTTP ${res.status})`); return; }
         setGames(data.games || []);
       } catch (err) {
