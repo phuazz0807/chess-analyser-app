@@ -4,14 +4,14 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   server: {
-    // Proxy API requests to the FastAPI backend
+    host: true,
     proxy: {
       '/games': {
-        target: 'http://backend:8000',
+        target: process.env.VITE_DEV_API || 'http://localhost:8000',
         changeOrigin: true,
       },
       '/api': {
-        target: 'http://backend:8000',
+        target: process.env.VITE_DEV_API || 'http://localhost:8000',
         changeOrigin: true,
       },
     },
