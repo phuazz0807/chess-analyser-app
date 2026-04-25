@@ -163,3 +163,16 @@ jobs:
         allow_issue_writing: false
         fail_action: false
         artifact_name: zap-baseline-report
+
+  docker-build:
+    name: Docker Build Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build backend image
+        run: docker build -t backend ./backend
+
+      - name: Build frontend image
+        run: docker build -t frontend ./frontend

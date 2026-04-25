@@ -7,11 +7,11 @@ export default defineConfig({
     // Proxy API requests to the FastAPI backend
     proxy: {
       '/games': {
-        target: 'http://localhost:8000',
+        target: 'http://backend:8000',
         changeOrigin: true,
       },
       '/api': {
-        target: 'http://localhost:8000',
+        target: 'http://backend:8000',
         changeOrigin: true,
       },
     },
