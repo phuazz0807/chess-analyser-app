@@ -10,9 +10,9 @@ WORKDIR /app
 
 # Install system dependencies (needed for psycopg2)
 RUN apt-get update && apt-get install -y \
-    gcc \
-    libpq-dev \
-    && rm -rf /var/lib/apt/lists/*
+        gcc \
+        libpq-dev \
+        && rm -rf /var/lib/apt/lists/* RUN apt-get update && apt-get install -y stockfish
 
 # Copy dependency file first (for caching)
 COPY requirements.txt .
