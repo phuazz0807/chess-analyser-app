@@ -41,6 +41,8 @@ export default function Dashboard() {
       }
 
       setGames(data.games || []);
+      print("zz-testing",data.games);
+
     } catch (err) {
       setError('Could not reach the server. Is the backend running?',err);
     } finally {
