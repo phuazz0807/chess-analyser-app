@@ -88,6 +88,7 @@ export default function GamesTable({ games, username }) {
       const gameUrl = game.url;
         console.log(`Starting analysis for game ${gameUrl}`);
         console.log(`game ${game}`);
+        console.log(`game ${game}`);
       console.log(`Game ID: ${game.idx}, PGN length: ${game.pgn ? game.pgn.length : 'N/A'}`);
 
       // Prevent duplicate clicks.
