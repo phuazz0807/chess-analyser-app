@@ -13,7 +13,7 @@ class GameAccuracies(BaseModel):
 
 class Game(BaseModel):
     """Mapped game payload returned by the backend /games endpoint."""
-
+    id: Optional[str] = None
     url: Optional[str] = None
     pgn: Optional[str] = None
     time_control: Optional[str] = None

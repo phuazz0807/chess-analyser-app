@@ -81,6 +81,7 @@ def map_game(game: dict) -> Game:
         accuracies = GameAccuracies(white=0, black=0)
 
     return Game(
+        id=game.get("url").split("/")[-1] if game.get("url") else None,
         url=game.get("url"),
         pgn=game.get("pgn"),
         time_control=game.get("time_control"),
