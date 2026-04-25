@@ -1,0 +1,29 @@
+# Dependencies and virtual environments
+node_modules/
+**/node_modules/
+chess-app-env/
+venv/
+.venv/
+env/
+
+# Build outputs
+dist/
+build/
+*.egg-info/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Test files and mock data
+# **/*test*.py
+# **/*.test.js
+# **/*.test.jsx
+# **/*.spec.js
+
+# Config and metadata
+.git/
+.github/
+*.lock
+package-lock.json

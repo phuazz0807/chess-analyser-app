@@ -1,0 +1,28 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environments
+venv/
+.venv/
+chess-app-env/
+
+# Environment variables
+.env
+
+# Testing / cache
+.pytest_cache/
+.mypy_cache/
+
+# OS / editor junk
+.DS_Store
+.vscode/
+
+# Node (just in case)
+node_modules/

@@ -1,0 +1,48 @@
+/* ---- Global reset & base styles ---- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  /* Chess.com-inspired palette */
+  --bg-primary: #312e2b;
+  --bg-secondary: #272522;
+  --bg-card: #3c3a37;
+  --text-primary: #e8e6e3;
+  --text-secondary: #a8a5a1;
+  --accent-green: #81b64c;
+  --accent-red: #e5635b;
+  --accent-draw: #b0a060;
+  --accent-link: #7fa8d1;
+  --border-color: #4a4744;
+
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  line-height: 1.5;
+  color: var(--text-primary);
+  background-color: var(--bg-primary);
+}
+
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+#root {
+  width: 100%;
+  max-width: 1400px;
+  padding: 1.5rem;
+}
+
+a {
+  color: var(--accent-link);
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}

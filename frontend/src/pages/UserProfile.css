@@ -1,0 +1,156 @@
+/* UserProfile.css - Styles for the user profile page */
+/* Floating chess pieces background */
+.profile-page {
+  position: relative;
+  overflow: hidden;
+}
+
+.floating-pieces {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.floating-piece {
+  position: absolute;
+  bottom: -5rem;   
+  animation: floatUp linear infinite;
+  color: #769656;
+  user-select: none;
+}
+
+@keyframes floatUp {
+  0%   { transform: translateY(0) rotate(0deg);   opacity: inherit; }
+  100% { transform: translateY(-110vh) rotate(25deg); opacity: 0; }
+}
+
+/* Ensure content sits above floating pieces */
+.profile-page .app-header,
+.profile-page .profile-card,
+.profile-page .reviewed-games-section,
+.profile-page .loading,
+.profile-page .error-message {
+  position: relative;
+  z-index: 1;
+}
+
+/* Reviewed games section */
+.reviewed-games-section {
+  margin: 2.5rem auto;
+  max-width: 900px;
+  width: 100%;
+  padding: 0 1rem;
+}
+
+.reviewed-games-title {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #9dbc6e;
+  margin-bottom: 1.2rem;
+  letter-spacing: 0.03em;
+}
+
+/* Table wrapper */
+.reviewed-games-table-wrap {
+  overflow-x: auto;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(6px);
+}
+
+.reviewed-games-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+}
+
+.reviewed-games-table thead tr {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.reviewed-games-table th {
+  padding: 0.85rem 1.1rem;
+  text-align: left;
+  font-weight: 600;
+  color: #888;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.reviewed-games-table td {
+  padding: 0.85rem 1.1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  color: #ddd;
+  vertical-align: middle;
+}
+
+.reviewed-games-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.reviewed-games-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.reviewed-games-table__num {
+  color: #555;
+  font-size: 0.82rem;
+  width: 2.5rem;
+}
+
+/* Player name + rating */
+.player-name {
+  font-weight: 500;
+  color: #e0e0e0;
+}
+
+.player-rating {
+  margin-left: 0.4rem;
+  color: #777;
+  font-size: 0.85rem;
+}
+
+/* Status badge */
+.status-badge {
+  display: inline-block;
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+}
+
+.status-badge--done {
+  background: rgba(100, 200, 100, 0.12);
+  color: #6fcf6f;
+  border: 1px solid rgba(100, 200, 100, 0.25);
+}
+
+.status-badge--progress {
+  background: rgba(255, 180, 50, 0.1);
+  color: #f0b429;
+  border: 1px solid rgba(255, 180, 50, 0.25);
+}
+
+/* Review again button */
+.review-again-btn {
+  padding: 0.4rem 0.9rem;
+  border-radius: 6px;
+  border: 1px solid rgba(157, 188, 110, 0.4);
+  background: transparent;
+  color: #9dbc6e;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s;
+  white-space: nowrap;
+}
+
+.review-again-btn:hover {
+  background: rgba(157, 188, 110, 0.15);
+  color: #b8d48a;
+}
