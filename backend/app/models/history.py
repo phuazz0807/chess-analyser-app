@@ -28,6 +28,9 @@ class GameHistory(Base):
     black_acpl = Column(Float, nullable=True)
     analysis_status = Column(String, nullable=False)
     created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
+    white_result = Column(String, nullable=True)
+    black_result = Column(String, nullable=True)
+    pgn = Column(String, nullable=True)
 
     def __repr__(self) -> str:
         return (
