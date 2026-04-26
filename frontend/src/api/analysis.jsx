@@ -73,8 +73,11 @@ export async function pollStatus(gameId,userId,token) {
  * @param {string} gameId
  * @returns {Promise<object>} — AnalysisResponse payload
  */
-export async function getResult(gameId) {
-  const response = await fetch(`${API_BASE}/result/${encodeURIComponent(gameId)}`);
+export async function getResult(gameId, userId, token) {
+  const response = await fetch(`${API_BASE}/result/${userId$}/${encodeURIComponent(gameId)}`,
+      {
+        headers: { Authorization: `Bearer ${token}`}
+      });
   const data = await response.json();
 
   if (!response.ok) {
@@ -104,7 +107,7 @@ export async function analyzeAndWait(
   depth = 18,
   userId,
   token,
-  intervalMs = 10000,
+  intervalMs = 3000,
   maxRetries = 50000,
   signal = undefined,
 ) {
@@ -123,7 +126,7 @@ export async function analyzeAndWait(
     const statusResp = await pollStatus(gameId,userId,token);
 
     if (statusResp.status === 'done') {
-      return statusResp;
+      return await getResult(gameId, userId, token);
     }
 
     if (statusResp.status === 'error') {
