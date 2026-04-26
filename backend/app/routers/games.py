@@ -7,7 +7,6 @@ from app.crud.games import fetch_archives, fetch_monthly_games
 from app.schemas.chesscom import GamesResponse
 from app.utils.games import (
     HTTP_HEADERS,
-    HTTP_TIMEOUT,
     filter_archive_urls,
     game_in_range,
     map_game,
@@ -31,7 +30,7 @@ async def get_games(
 
     needed_months = months_in_range(start, end)
 
-    async with httpx.AsyncClient(headers=HTTP_HEADERS, timeout=HTTP_TIMEOUT, verify=False) as client:
+    async with httpx.AsyncClient(headers=HTTP_HEADERS, verify=False) as client:
         archives = await fetch_archives(client, username.strip().lower())
         urls_to_fetch = filter_archive_urls(archives, needed_months)
 
