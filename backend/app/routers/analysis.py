@@ -100,7 +100,6 @@ async def start_analysis(
     _analysis_store[composite_key] = {"status": "pending", "result": None, "error": None}
 
     # Launch the Stockfish call in the background so we return immediately.
-    print(request)
     logger = logging.getLogger(__name__)
 
     def _log_task_done(task: asyncio.Task):
@@ -279,11 +278,12 @@ async def _run_analysis(request: AnalysisStartRequest) -> None:
     composite_key = f"{user_id}:{game_id}"
     print("_run_analysis ENTERED")
 
-    logger.info(f"[RUN_ANALYSIS ENTERED] user_id={user_id}, game_id={game_id}")
-    logger.info(f"[REQUEST PAYLOAD] {request.model_dump()}")
 
     try:
         logger.info(f"Calling Stockfish at: {STOCKFISH_SERVICE_URL}")
+        print(STOCKFISH_SERVICE_URL)
+        print(STOCKFISH_TIMEOUT)
+        print(request.model_dump())
         async with httpx.AsyncClient(timeout=STOCKFISH_TIMEOUT) as client:
             resp = await client.post(
                 STOCKFISH_SERVICE_URL,
