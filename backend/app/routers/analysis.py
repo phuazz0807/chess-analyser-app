@@ -100,10 +100,13 @@ async def start_analysis(
     _analysis_store[composite_key] = {"status": "pending", "result": None, "error": None}
 
     # Launch the Stockfish call in the background so we return immediately.
+    print(request)
 
-    task = asyncio.create_task(_run_analysis(request))
+    loop = asyncio.get_running_loop()
+    task = loop.create_task(_run_analysis(request))
+
     logger.info(f"[TASK CREATED] game_id={game_id}, task_id={id(task)}")
-    task.add_done_callback(lambda t: logger.error(t.exception()) if t.exception() else None)
+    task.add_done_callback(_log_task_done)
 
     return {"message": "Analysis started", "game_id": game_id}
 
@@ -263,6 +266,7 @@ async def _run_analysis(request: AnalysisStartRequest) -> None:
     game_id = request.game_id
     user_id = request.user_id
     composite_key = f"{user_id}:{game_id}"
+    print("_run_analysis ENTERED")
 
     logger.info(f"[RUN_ANALYSIS ENTERED] user_id={user_id}, game_id={game_id}")
     logger.info(f"[REQUEST PAYLOAD] {request.model_dump()}")
