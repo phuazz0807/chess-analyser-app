@@ -87,7 +87,6 @@ export default function GamesTable({ games, username }) {
     async (game) => {
       const gameUrl = game.url;
         console.log(`Starting analysis for game ${gameUrl}`);
-        console.log(JSON.stringify(game, null, 2));
         console.log(`Game ID: ${game.id}, PGN length: ${game.pgn ? game.pgn.length : 'N/A'}`);
 
       // Prevent duplicate clicks.
