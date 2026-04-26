@@ -101,6 +101,17 @@ async def start_analysis(
 
     # Launch the Stockfish call in the background so we return immediately.
     print(request)
+    logger = logging.getLogger(__name__)
+
+    def _log_task_done(task: asyncio.Task):
+        try:
+            exc = task.exception()
+            if exc:
+                logger.exception(f"[TASK FAILED] {exc}")
+            else:
+                logger.info("[TASK COMPLETED SUCCESSFULLY]")
+        except Exception as e:
+            logger.exception(f"[TASK CALLBACK ERROR] {e}")
 
     loop = asyncio.get_running_loop()
     task = loop.create_task(_run_analysis(request))
