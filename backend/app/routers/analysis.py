@@ -100,7 +100,23 @@ async def start_analysis(
     _analysis_store[composite_key] = {"status": "pending", "result": None, "error": None}
 
     # Launch the Stockfish call in the background so we return immediately.
-    asyncio.create_task(_run_analysis(request))
+    logger = logging.getLogger(__name__)
+
+    def _log_task_done(task: asyncio.Task):
+        try:
+            exc = task.exception()
+            if exc:
+                logger.exception(f"[TASK FAILED] {exc}")
+            else:
+                logger.info("[TASK COMPLETED SUCCESSFULLY]")
+        except Exception as e:
+            logger.exception(f"[TASK CALLBACK ERROR] {e}")
+
+    loop = asyncio.get_running_loop()
+    task = loop.create_task(_run_analysis(request))
+
+    logger.info(f"[TASK CREATED] game_id={game_id}, task_id={id(task)}")
+    task.add_done_callback(_log_task_done)
 
     return {"message": "Analysis started", "game_id": game_id}
 
@@ -260,33 +276,49 @@ async def _run_analysis(request: AnalysisStartRequest) -> None:
     game_id = request.game_id
     user_id = request.user_id
     composite_key = f"{user_id}:{game_id}"
+    print("_run_analysis ENTERED")
+
 
     try:
+        logger.info(f"Calling Stockfish at: {STOCKFISH_SERVICE_URL}")
+        print(STOCKFISH_SERVICE_URL)
+        print(STOCKFISH_TIMEOUT)
+        print(request.model_dump())
         async with httpx.AsyncClient(timeout=STOCKFISH_TIMEOUT) as client:
             resp = await client.post(
                 STOCKFISH_SERVICE_URL,
                 json=request.model_dump(),
             )
 
+        logger.info(f"Stockfish response status: {resp.status_code}")
+
+
         if resp.status_code != 200:
-            error_detail = resp.text[:500]
+            error_detail = resp.text[:300]
+
             logger.error(
-                "Stockfish returned %d for game_id=%s: %s",
+                "Stockfish error %d for game_id=%s\nResponse: %s",
                 resp.status_code, game_id, error_detail,
             )
+
             _analysis_store[composite_key] = {
                 "status": "error",
                 "result": None,
-                "error": f"Stockfish error (HTTP {resp.status_code}): {error_detail}",
+                "error": f"Stockfish HTTP {resp.status_code}",
             }
-            # Notify listeners of error
+
             await _notify_listeners(composite_key, "error", {
-                "error": f"Stockfish error (HTTP {resp.status_code})"
+                "error": f"Stockfish HTTP {resp.status_code}"
             })
             return
 
         # Validate the response payload.
-        data = resp.json()
+        try:
+            data = resp.json()
+        except Exception:
+            logger.error("Invalid JSON from Stockfish: %s", resp.text[:300])
+            raise RuntimeError("Stockfish returned non-JSON response")
+
         callback_payload = AnalysisCallbackPayload(**data)
 
         _analysis_store[composite_key] = {
@@ -294,8 +326,9 @@ async def _run_analysis(request: AnalysisStartRequest) -> None:
             "result": callback_payload.model_dump(),
             "error": None,
         }
+
         logger.info(
-            "Analysis complete for game_id=%s  moves=%d",
+            "Analysis complete for game_id=%s moves=%d",
             game_id, len(callback_payload.results),
         )
 
@@ -329,13 +362,22 @@ async def _run_analysis(request: AnalysisStartRequest) -> None:
         # Notify listeners of completion
         await _notify_listeners(composite_key, "done", {})
 
+    except httpx.ConnectError:
+        logger.error("Cannot connect to Stockfish service")
+        error_msg = "Stockfish service unreachable"
+
+    except httpx.ReadTimeout:
+        logger.error("Stockfish request timed out")
+        error_msg = "Stockfish timeout"
+
     except Exception as exc:
         logger.exception("Background analysis failed for game_id=%s", game_id)
         error_msg = str(exc)
-        _analysis_store[composite_key] = {
-            "status": "error",
-            "result": None,
-            "error": error_msg,
-        }
-        # Notify listeners of error
-        await _notify_listeners(composite_key, "error", {"error": error_msg})
+
+    _analysis_store[composite_key] = {
+        "status": "error",
+        "result": None,
+        "error": error_msg,
+    }
+    # Notify listeners of error
+    await _notify_listeners(composite_key, "error", {"error": error_msg})

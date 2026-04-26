@@ -30,8 +30,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY app/ app/
 
 # Expose the service port.
-ENV PORT=8001
 EXPOSE 8001
 
 # Run with uvicorn.  Workers=1 because Stockfish is single‑instance.
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8001", "--workers", "1"]
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8001} --workers 1"]
