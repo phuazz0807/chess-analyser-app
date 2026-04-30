@@ -225,7 +225,7 @@ async def fetch_monthly_games(client: httpx.AsyncClient, archive_url: str) -> li
 # ---------------------------------------------------------------------------
 # Main endpoint
 # ---------------------------------------------------------------------------
-# simulation
+
 @app.get("/games", response_model=GamesResponse)
 async def get_games(
     username: str = Query(..., min_length=1, description="Chess.com username"),
